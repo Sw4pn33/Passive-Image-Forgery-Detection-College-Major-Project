@@ -71,14 +71,15 @@ export function UploadPanel({ onLoadingChange, onError }: Props) {
 
   const mutation = useMutation({
     mutationFn: async (f: File) => {
-      const [result, originalDataUrl] = await Promise.all([detectImage(f), readAsDataUrl(f)]);
-      return { result, originalDataUrl };
+      const result = await detectImage(f);
+      return { result };
     },
     onMutate: () => {
       onLoadingChange(true);
       onError(null);
     },
-    onSuccess: ({ result, originalDataUrl }, f) => {
+    onSuccess: ({ result }, f) => {
+      const originalDataUrl = `data:image/jpeg;base64,${result.original_jpeg}`;
       const stored: StoredResult = {
         id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
         timestamp: Date.now(),
@@ -119,9 +120,15 @@ export function UploadPanel({ onLoadingChange, onError }: Props) {
       setValidationError(null);
       setFile(f);
       onError(null);
-      try {
-        setPreview(await readAsDataUrl(f));
-      } catch {
+      const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
+      const browserRenderable = ["jpg", "jpeg", "png", "webp", "gif", "avif"];
+      if (browserRenderable.includes(ext)) {
+        try {
+          setPreview(await readAsDataUrl(f));
+        } catch {
+          setPreview(null);
+        }
+      } else {
         setPreview(null);
       }
     },
@@ -231,7 +238,7 @@ export function UploadPanel({ onLoadingChange, onError }: Props) {
           className="hidden"
           onChange={(e) => void handleFile(e.target.files?.[0])}
         />
-        {preview ? (
+        {file && preview ? (
           <div className="w-full flex flex-col items-center gap-3">
             <img
               src={preview}
@@ -239,16 +246,28 @@ export function UploadPanel({ onLoadingChange, onError }: Props) {
               className="max-h-40 rounded-lg border border-border/70 shadow-md object-contain"
             />
             <div className="text-[12px] text-foreground font-medium truncate max-w-full">
-              {file?.name}
+              {file.name}
             </div>
             <div className="text-[10.5px] text-muted-foreground mono">
-              {file ? `${(file.size / 1024).toFixed(1)} KB` : ""}
+              {(file.size / 1024).toFixed(1)} KB
+            </div>
+          </div>
+        ) : file && !preview ? (
+          <div className="w-full flex flex-col items-center gap-3">
+            <div className="grid size-14 place-items-center rounded-xl border border-border bg-surface/60">
+              <ImageIcon className="size-6 text-muted-foreground/60" strokeWidth={1.5} />
+            </div>
+            <div className="text-[12px] text-foreground font-medium truncate max-w-[260px]">
+              {file.name}
+            </div>
+            <div className="text-[10.5px] text-muted-foreground mono">
+              {(file.size / 1024).toFixed(1)} KB · preview not available for this format
             </div>
           </div>
         ) : (
           <>
-            <div className="grid size-12 place-items-center rounded-2xl gradient-brand shadow-md shadow-primary/20">
-              <UploadCloud className="size-6 text-white" />
+            <div className="grid size-12 place-items-center rounded-xl border border-primary/25 bg-primary/8">
+              <UploadCloud className="size-5 text-primary" />
             </div>
             <div className="mt-3 text-[14px] font-medium text-foreground">
               Drag &amp; drop image here
@@ -279,7 +298,7 @@ export function UploadPanel({ onLoadingChange, onError }: Props) {
             onClick={analyze}
             disabled={mutation.isPending || !backendOnline}
             title={!backendOnline ? "Backend offline" : undefined}
-            className="flex-1 gradient-brand text-white border-0 shadow-sm shadow-primary/20 hover:opacity-95 disabled:opacity-50"
+            className="flex-1 bg-primary text-primary-foreground border-0 hover:bg-primary/90 disabled:opacity-40"
           >
             <ScanLine className="size-4" />
             {mutation.isPending
@@ -345,7 +364,7 @@ function PipelineStep({
   return (
     <li className="flex items-start gap-3">
       <div className="relative shrink-0">
-        <div className="grid size-8 place-items-center rounded-lg gradient-brand text-white shadow shadow-primary/15">
+        <div className="grid size-8 place-items-center rounded-lg border border-primary/25 bg-primary/8 text-primary">
           <Icon className="size-4" />
         </div>
         <div className="absolute -bottom-1 -right-1 grid size-4 place-items-center rounded-full bg-background border border-border mono text-[9px] font-semibold text-foreground">

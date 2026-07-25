@@ -5,12 +5,10 @@ import {
   Compass,
   Layers,
   EyeOff,
-  Brain,
-  Fingerprint,
-  Flame,
-  Grid3x3,
-  UploadCloud,
   Cpu,
+  Fingerprint,
+  Map,
+  UploadCloud,
   BarChart3,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -60,13 +58,13 @@ const GAPS = [
 const STEPS = [
   {
     n: "01",
-    icon: Brain,
+    icon: Cpu,
     title: "DCNN Classification",
     body: "EfficientNetB0 backbone pretrained on ImageNet, fine-tuned on CASIA v1.0. Binary classification (authentic vs forged) with confidence score.",
   },
   {
     n: "02",
-    icon: Grid3x3,
+    icon: Layers,
     title: "SLIC Superpixel Segmentation",
     body: "Simple Linear Iterative Clustering partitions image into ~100 perceptually uniform superpixels. Per-superpixel Lab* colour statistics computed.",
   },
@@ -78,7 +76,7 @@ const STEPS = [
   },
   {
     n: "04",
-    icon: Flame,
+    icon: Map,
     title: "Forgery Localization + Heatmap",
     body: "SLIC outlier superpixels (z-score > 2.5) flag illumination inconsistency (splicing). SIFT match clusters mark copy-move regions. JET-coloured heatmap output.",
   },
@@ -160,7 +158,7 @@ function MethodologyPage() {
                 className="relative rounded-2xl border border-border/70 bg-surface/50 p-5 flex gap-5"
               >
                 <div className="flex flex-col items-center shrink-0">
-                  <div className="grid size-12 place-items-center rounded-xl gradient-brand text-white font-semibold mono shadow-lg shadow-primary/25">
+                  <div className="grid size-12 place-items-center rounded-xl border border-primary/40 bg-primary/8 font-semibold mono text-primary text-[13px]">
                     {s.n}
                   </div>
                   <div className="mt-2 grid size-8 place-items-center rounded-lg bg-surface-2/70 border border-border/70">
@@ -211,7 +209,7 @@ function MethodologyPage() {
                 key={h.title}
                 className="rounded-2xl border border-border/70 bg-surface/50 p-5"
               >
-                <div className="grid size-11 place-items-center rounded-xl gradient-brand text-white shadow-md shadow-primary/20">
+                <div className="grid size-11 place-items-center rounded-xl border border-primary/35 bg-primary/8 text-primary">
                   <Icon className="size-5" />
                 </div>
                 <h3 className="mt-4 text-[14.5px] font-semibold text-foreground">{h.title}</h3>

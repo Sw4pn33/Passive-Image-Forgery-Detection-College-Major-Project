@@ -1,17 +1,31 @@
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
   Area,
   ComposedChart,
-  ReferenceDot,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
   Legend,
+  Line,
+  ReferenceDot,
 } from "recharts";
 import type { TrainingEpoch } from "@/lib/types";
+import { useEffect, useState } from "react";
+
+function useIsDark() {
+  const [dark, setDark] = useState(() =>
+    document.documentElement.classList.contains("dark"),
+  );
+  useEffect(() => {
+    const obs = new MutationObserver(() =>
+      setDark(document.documentElement.classList.contains("dark")),
+    );
+    obs.observe(document.documentElement, { attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  }, []);
+  return dark;
+}
 
 interface Props {
   data: TrainingEpoch[];
@@ -19,7 +33,12 @@ interface Props {
 }
 
 export function AccuracyChart({ data, bestEpoch }: Props) {
+  const dark = useIsDark();
+  const grid = dark ? "#1e2d47" : "#e2e8f0";
+  const axis = dark ? "#5a6b8a" : "#94a3b8";
+  const tooltipBg = dark ? "#0d1526" : "#ffffff";
   const bestRow = data.find((d) => d.epoch === bestEpoch);
+
   return (
     <div className="glass-card p-5">
       <div className="flex items-center justify-between">
@@ -46,27 +65,24 @@ export function AccuracyChart({ data, bestEpoch }: Props) {
                 <stop offset="100%" stopColor="#00d4aa" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid stroke="#1e2d47" strokeDasharray="3 3" vertical={false} />
+            <CartesianGrid stroke={grid} strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="epoch"
-              stroke="#5a6b8a"
+              stroke={axis}
               fontSize={11}
               tickLine={false}
-              axisLine={{ stroke: "#1e2d47" }}
+              axisLine={{ stroke: grid }}
             />
             <YAxis
-              stroke="#5a6b8a"
+              stroke={axis}
               fontSize={11}
               domain={[60, 100]}
               tickLine={false}
-              axisLine={{ stroke: "#1e2d47" }}
+              axisLine={{ stroke: grid }}
               tickFormatter={(v) => `${v}%`}
             />
-            <Tooltip content={<AccTooltip />} />
-            <Legend
-              iconType="circle"
-              wrapperStyle={{ fontSize: 11, color: "#a0a9bd" }}
-            />
+            <Tooltip content={<AccTooltip bg={tooltipBg} />} />
+            <Legend iconType="circle" wrapperStyle={{ fontSize: 11, color: axis }} />
             <Area
               type="monotone"
               dataKey="train_acc"
@@ -93,7 +109,7 @@ export function AccuracyChart({ data, bestEpoch }: Props) {
                 y={bestRow.val_acc}
                 r={5}
                 fill="#00d4aa"
-                stroke="#0d1526"
+                stroke={tooltipBg}
                 strokeWidth={2}
               />
             )}
@@ -105,7 +121,12 @@ export function AccuracyChart({ data, bestEpoch }: Props) {
 }
 
 export function LossChart({ data, bestEpoch }: Props) {
+  const dark = useIsDark();
+  const grid = dark ? "#1e2d47" : "#e2e8f0";
+  const axis = dark ? "#5a6b8a" : "#94a3b8";
+  const tooltipBg = dark ? "#0d1526" : "#ffffff";
   const bestRow = data.find((d) => d.epoch === bestEpoch);
+
   return (
     <div className="glass-card p-5">
       <div className="flex items-center justify-between">
@@ -132,22 +153,22 @@ export function LossChart({ data, bestEpoch }: Props) {
                 <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid stroke="#1e2d47" strokeDasharray="3 3" vertical={false} />
+            <CartesianGrid stroke={grid} strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="epoch"
-              stroke="#5a6b8a"
+              stroke={axis}
               fontSize={11}
               tickLine={false}
-              axisLine={{ stroke: "#1e2d47" }}
+              axisLine={{ stroke: grid }}
             />
             <YAxis
-              stroke="#5a6b8a"
+              stroke={axis}
               fontSize={11}
               tickLine={false}
-              axisLine={{ stroke: "#1e2d47" }}
+              axisLine={{ stroke: grid }}
             />
-            <Tooltip content={<LossTooltip />} />
-            <Legend iconType="circle" wrapperStyle={{ fontSize: 11, color: "#a0a9bd" }} />
+            <Tooltip content={<LossTooltip bg={tooltipBg} />} />
+            <Legend iconType="circle" wrapperStyle={{ fontSize: 11, color: axis }} />
             <Area
               type="monotone"
               dataKey="train_loss"
@@ -172,7 +193,7 @@ export function LossChart({ data, bestEpoch }: Props) {
                 y={bestRow.val_loss}
                 r={5}
                 fill="#ef4444"
-                stroke="#0d1526"
+                stroke={tooltipBg}
                 strokeWidth={2}
               />
             )}
@@ -187,12 +208,16 @@ interface TT {
   active?: boolean;
   payload?: Array<{ name: string; value: number; color: string }>;
   label?: number;
+  bg: string;
 }
 
-function AccTooltip({ active, payload, label }: TT) {
+function AccTooltip({ active, payload, label, bg }: TT) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-border/80 bg-[#0d1526]/95 backdrop-blur px-3 py-2 shadow-xl">
+    <div
+      className="rounded-lg border border-border/80 backdrop-blur px-3 py-2 shadow-xl"
+      style={{ backgroundColor: bg }}
+    >
       <div className="text-[10.5px] uppercase tracking-wider text-muted-foreground">
         Epoch <span className="mono text-foreground">{label}</span>
       </div>
@@ -209,10 +234,13 @@ function AccTooltip({ active, payload, label }: TT) {
   );
 }
 
-function LossTooltip({ active, payload, label }: TT) {
+function LossTooltip({ active, payload, label, bg }: TT) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-border/80 bg-[#0d1526]/95 backdrop-blur px-3 py-2 shadow-xl">
+    <div
+      className="rounded-lg border border-border/80 backdrop-blur px-3 py-2 shadow-xl"
+      style={{ backgroundColor: bg }}
+    >
       <div className="text-[10.5px] uppercase tracking-wider text-muted-foreground">
         Epoch <span className="mono text-foreground">{label}</span>
       </div>

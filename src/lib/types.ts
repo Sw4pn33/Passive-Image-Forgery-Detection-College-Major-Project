@@ -15,7 +15,10 @@ export interface DetectResponse {
   confidence: number;
   forgery_type: ForgeryType;
   regions_found: number;
-  heatmap: string; // base64 JPEG
+  heatmap: string;          // base64 JPEG — pure JET colormap (SLIC+SIFT mask)
+  gradcam_jpeg: string;     // base64 JPEG — pure JET colormap (Grad-CAM from EfficientNetB0)
+  original_jpeg: string;    // base64 JPEG of original (display-safe for any input format)
+  process_time_ms: number;  // inference + localization time in ms
   forensic_meta: ForensicMeta;
 }
 
