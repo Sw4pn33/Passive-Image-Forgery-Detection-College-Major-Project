@@ -251,16 +251,22 @@ function ResultView({ item }: { item: StoredResult }) {
           </figcaption>
         </figure>
         <figure className="rounded-xl border border-border/70 bg-surface/40 overflow-hidden">
-          <div className="aspect-video bg-black/40 grid place-items-center">
+          <div className="relative aspect-video bg-black/40 grid place-items-center">
             <img
-              src={`data:image/jpeg;base64,${r.heatmap}`}
-              alt="heatmap"
+              src={item.originalDataUrl}
+              alt="original underlay"
               className="max-h-full max-w-full object-contain"
             />
+            <img
+              src={`data:image/jpeg;base64,${r.heatmap}`}
+              alt="heatmap overlay"
+              style={{ opacity: overlayOpacity }}
+              className="absolute inset-0 m-auto max-h-full max-w-full object-contain pointer-events-none transition-opacity"
+            />
           </div>
-          <figcaption className="px-3 py-2 flex items-center justify-between">
+          <figcaption className="px-3 py-2 flex items-center justify-between gap-2">
             <span className="text-[11px] text-muted-foreground uppercase tracking-wider">
-              Forgery Heatmap
+              Heatmap Overlay
             </span>
             <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
               <span className="size-2 rounded-sm bg-blue-500" /> low
@@ -270,6 +276,29 @@ function ResultView({ item }: { item: StoredResult }) {
           </figcaption>
         </figure>
       </div>
+
+      {/* opacity control */}
+      <div className="rounded-xl border border-border/70 bg-surface/40 px-4 py-3">
+        <div className="flex items-center justify-between text-[11.5px]">
+          <label htmlFor="opacity-slider" className="text-muted-foreground uppercase tracking-wider">
+            Heatmap Opacity
+          </label>
+          <span className="mono font-semibold text-foreground">
+            {Math.round(overlayOpacity * 100)}%
+          </span>
+        </div>
+        <Slider
+          id="opacity-slider"
+          className="mt-2.5"
+          value={[Math.round(overlayOpacity * 100)]}
+          min={0}
+          max={100}
+          step={1}
+          onValueChange={(v) => setOverlayOpacity((v[0] ?? 60) / 100)}
+          aria-label="Heatmap overlay opacity"
+        />
+      </div>
+
 
       {/* diagnostics */}
       {forged && (
