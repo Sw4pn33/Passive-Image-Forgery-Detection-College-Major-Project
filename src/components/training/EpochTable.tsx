@@ -22,8 +22,8 @@ export function EpochTable({
       </div>
       <div className="max-h-[520px] overflow-y-auto">
         <table className="w-full text-[12.5px]">
-          <thead className="sticky top-0 bg-[#0d1526]/95 backdrop-blur">
-            <tr className="text-left text-[10.5px] uppercase tracking-[0.12em] text-muted-foreground border-b border-border/60">
+          <thead className="sticky top-0 bg-background/95 backdrop-blur border-b border-border/60">
+            <tr className="text-left text-[10.5px] uppercase tracking-[0.12em] text-muted-foreground">
               <th className="px-5 py-2.5 font-medium">Epoch</th>
               <th className="px-5 py-2.5 font-medium">Train Loss</th>
               <th className="px-5 py-2.5 font-medium">Train Acc</th>

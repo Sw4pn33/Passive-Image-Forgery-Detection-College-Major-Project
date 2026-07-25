@@ -50,7 +50,7 @@ function TrainingPage() {
         </div>
         <button
           onClick={() => refetch()}
-          className="mt-2 rounded-md gradient-brand px-4 py-1.5 text-xs font-medium text-white"
+          className="mt-2 rounded-md bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground"
         >
           Retry
         </button>
