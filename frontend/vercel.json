@@ -1,7 +1,10 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": ".output/public",
-  "env": {
-    "BACKEND_URL": "http://178.18.244.119:8000"
-  }
+  "outputDirectory": "dist/client",
+  "rewrites": [
+    { "source": "/api/detect", "destination": "http://178.18.244.119:8000/api/detect" },
+    { "source": "/api/training-history", "destination": "http://178.18.244.119:8000/api/training-history" },
+    { "source": "/api/health", "destination": "http://178.18.244.119:8000/health" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
