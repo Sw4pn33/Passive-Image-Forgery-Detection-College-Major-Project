@@ -1,0 +1,10 @@
+{
+  "buildCommand": "cd frontend && npm install && npm run build && node scripts/prerender.mjs",
+  "outputDirectory": "frontend/dist/client",
+  "rewrites": [
+    { "source": "/api/detect", "destination": "http://178.18.244.119:8000/api/detect" },
+    { "source": "/api/health", "destination": "http://178.18.244.119:8000/health" },
+    { "source": "/api/training-history", "destination": "http://178.18.244.119:8000/api/training-history" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
