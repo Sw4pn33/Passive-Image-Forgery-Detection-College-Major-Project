@@ -38,7 +38,7 @@
 
 ---
 
-<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Microscope.gif" width="30" alt="paper"/> What this paper is about</h2>
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Microscope.png" width="30" alt="paper"/> What this paper is about</h2>
 
 Image forgery — splicing objects from different sources, duplicating regions within the same photo — is increasingly hard to spot with the naked eye. The goal of **passive forgery detection** is to catch these manipulations using only pixel data, with no prior embedding of watermarks or signatures (hence "passive").
 
@@ -48,7 +48,7 @@ Neither approach alone is satisfying. A classification score without spatial evi
 
 ---
 
-<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Magnifying%20Glass%20Tilted%20Left.gif" width="30" alt="gap"/> The gap we're addressing</h2>
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Magnifying%20Glass%20Tilted%20Left.png" width="30" alt="gap"/> The gap we're addressing</h2>
 
 Here's what the existing literature leaves on the table:
 
@@ -64,7 +64,7 @@ Classical SIFT-based copy-move detectors work well when forged regions aren't he
 
 ---
 
-<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Puzzle%20Piece.gif" width="30" alt="architecture"/> Architecture</h2>
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Activities/Puzzle%20Piece.png" width="30" alt="architecture"/> Architecture</h2>
 
 ```
 Input Image
@@ -85,7 +85,7 @@ React frontend  →  drag-drop upload, comparison slider, heatmap toggle
 
 ---
 
-<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Card%20File%20Box.gif" width="30" alt="dataset"/> Dataset</h2>
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Card%20File%20Box.png" width="30" alt="dataset"/> Dataset</h2>
 
 **CASIA v1.0** — 921 authentic + 921 forged images (copy-move and splicing), JPEG, ~384×256 average resolution.
 
@@ -100,7 +100,7 @@ Quick-start samples in [`samples/`](./samples/) — 5 authentic + 5 forged from 
 
 ---
 
-<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Hammer%20and%20Wrench.gif" width="30" alt="built"/> What we built</h2>
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Hammer%20and%20Wrench.png" width="30" alt="built"/> What we built</h2>
 
 - **Hybrid detector** — EfficientNetB0 fine-tuned on CASIA, plus SLIC+SIFT for spatial localization of copy-move regions
 - **Grad-CAM fallback** — when SLIC/SIFT finds no keypoints (splicing attacks), Grad-CAM activations are shown so there's always a spatial explanation
@@ -109,7 +109,7 @@ Quick-start samples in [`samples/`](./samples/) — 5 authentic + 5 forged from 
 
 ---
 
-<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Bar%20Chart.gif" width="30" alt="results"/> Results</h2>
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Bar%20Chart.png" width="30" alt="results"/> Results</h2>
 
 <div align="center">
 
@@ -135,7 +135,7 @@ Training ran on Kaggle GPU T4. The model checkpoint (`dcnn_forgery.pt`) isn't in
 
 ---
 
-<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Gear.gif" width="30" alt="stack"/> Tech stack</h2>
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Gear.png" width="30" alt="stack"/> Tech stack</h2>
 
 <div align="center">
   <img src="https://skillicons.dev/icons?i=python,pytorch,fastapi,opencv,react,ts,tailwind,vite,vercel" />
@@ -155,7 +155,7 @@ Training ran on Kaggle GPU T4. The model checkpoint (`dcnn_forgery.pt`) isn't in
 
 ---
 
-<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Laptop.gif" width="30" alt="install"/> Installation</h2>
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Laptop.png" width="30" alt="install"/> Installation</h2>
 
 ### Backend
 
@@ -200,7 +200,7 @@ Use Kaggle or any CUDA environment — CPU training will take hours per epoch.
 
 ---
 
-<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20Places/Globe%20with%20Meridians.gif" width="30" alt="demo"/> Live demo</h2>
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Globe%20with%20Meridians.png" width="30" alt="demo"/> Live demo</h2>
 
 <div align="center">
 
@@ -212,7 +212,7 @@ The backend processes each image in 2–4 seconds. Grab an image from [`samples/
 
 ---
 
-<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Open%20File%20Folder.gif" width="30" alt="layout"/> Project layout</h2>
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Open%20File%20Folder.png" width="30" alt="layout"/> Project layout</h2>
 
 ```
 .
@@ -242,7 +242,7 @@ The backend processes each image in 2–4 seconds. Grab an image from [`samples/
 
 ---
 
-<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20Places/Warning.gif" width="30" alt="limits"/> Limitations</h2>
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Symbols/Warning.png" width="30" alt="limits"/> Limitations</h2>
 
 CASIA v1.0 is small and dated by modern standards. The model will struggle with:
 - AI-generated images (Stable Diffusion, Midjourney, DALL-E)
@@ -253,7 +253,7 @@ The SIFT copy-move detector also breaks when regions are scaled beyond ~30% or r
 
 ---
 
-<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Handshake.gif" width="30" alt="team"/> Collaborators</h2>
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Hand%20gestures/Handshake.png" width="30" alt="team"/> Collaborators</h2>
 
 <div align="center">
 
