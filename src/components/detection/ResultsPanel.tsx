@@ -178,7 +178,6 @@ function CompareSlider({
       onTouchStart={(e) => updatePos(e.touches[0].clientX)}
       onTouchMove={(e) => { e.preventDefault(); updatePos(e.touches[0].clientX); }}
     >
-      {/* Bottom: heatmap (pure JET) — sets container natural height */}
       <img
         src={`data:image/jpeg;base64,${heatmap}`}
         alt="heatmap"
@@ -186,7 +185,6 @@ function CompareSlider({
         draggable={false}
       />
 
-      {/* Top: original, clipped to left portion */}
       <img
         src={original}
         alt="original"
@@ -198,19 +196,16 @@ function CompareSlider({
         draggable={false}
       />
 
-      {/* Divider line */}
       <div
         className="absolute top-0 bottom-0 w-px bg-white/90 shadow-[0_0_6px_rgba(0,0,0,0.4)]"
         style={{ left: `${pos}%` }}
       >
-        {/* Handle */}
         <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-white rounded-full px-2 py-1.5 shadow-lg border border-border/30">
           <ChevronLeft className="size-3 text-foreground/70" />
           <ChevronRight className="size-3 text-foreground/70" />
         </div>
       </div>
 
-      {/* Labels */}
       <div className="absolute bottom-2 left-2 text-[9px] uppercase tracking-widest text-white bg-black/50 px-1.5 py-0.5 rounded">
         Original
       </div>
@@ -243,7 +238,6 @@ function ResultView({ item }: { item: StoredResult }) {
 
   return (
     <div className="animate-result space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <div className="grid size-8 place-items-center rounded-lg bg-good/15 border border-good/30">
@@ -280,7 +274,6 @@ function ResultView({ item }: { item: StoredResult }) {
         </div>
       </div>
 
-      {/* Verdict + Confidence gauge */}
       <div className={cn(
         "rounded-2xl border p-4 relative overflow-hidden flex items-center gap-4",
         forged ? "border-destructive/40 bg-destructive/[0.06]" : "border-good/40 bg-good/[0.06]",
@@ -309,7 +302,6 @@ function ResultView({ item }: { item: StoredResult }) {
         </div>
       </div>
 
-      {/* Compare slider */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <div className="text-[11.5px] font-medium text-foreground">Image Comparison</div>
@@ -355,7 +347,6 @@ function ResultView({ item }: { item: StoredResult }) {
         </div>
       </div>
 
-      {/* Diagnostics */}
       {forged && (
         <div className="rounded-2xl border border-border/70 bg-surface/50 p-4">
           <div className="flex items-center gap-2 text-[12.5px] font-semibold text-foreground">
@@ -378,7 +369,6 @@ function ResultView({ item }: { item: StoredResult }) {
 
       <ConclusionRow forged={forged} type={r.forgery_type} />
 
-      {/* Model comparison */}
       <div className="rounded-2xl border border-border/70 bg-surface/50 overflow-hidden">
         <div className="px-4 pt-3 pb-2 text-[12px] font-semibold text-foreground">Model Comparison</div>
         <div className="overflow-x-auto">

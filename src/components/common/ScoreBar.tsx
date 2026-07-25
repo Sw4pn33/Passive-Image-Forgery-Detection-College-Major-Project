@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 export function ScoreBar({
   label,
-  value, // 0..1
+  value,
   color,
   hint,
 }: {

@@ -110,7 +110,6 @@ const HOW = [
 function MethodologyPage() {
   return (
     <div className="space-y-8">
-      {/* Research gap */}
       <section className="glass-card p-6 lg:p-8">
         <SectionEyebrow
           eyebrow="Research Gap"
@@ -142,7 +141,6 @@ function MethodologyPage() {
         </div>
       </section>
 
-      {/* Contribution */}
       <section className="glass-card p-6 lg:p-8">
         <SectionEyebrow
           eyebrow="Contribution"
@@ -177,7 +175,6 @@ function MethodologyPage() {
         </ol>
       </section>
 
-      {/* Performance */}
       <section className="glass-card p-6 lg:p-8">
         <SectionEyebrow eyebrow="Performance" title="Measured results" />
         <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -198,7 +195,6 @@ function MethodologyPage() {
         </div>
       </section>
 
-      {/* How it works */}
       <section className="glass-card p-6 lg:p-8">
         <SectionEyebrow eyebrow="Workflow" title="How It Works" />
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
