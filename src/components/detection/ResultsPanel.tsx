@@ -94,10 +94,12 @@ function ResultView({ item }: { item: StoredResult }) {
   const forged = r.verdict === "FORGED";
 
   const [barW, setBarW] = useState(0);
+  const [overlayOpacity, setOverlayOpacity] = useState(0.6);
   useEffect(() => {
     const t = requestAnimationFrame(() => setBarW(r.confidence));
     return () => cancelAnimationFrame(t);
   }, [r.confidence]);
+
 
   const copySummary = async () => {
     const type = r.forgery_type
