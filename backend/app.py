@@ -51,14 +51,25 @@ async def detect_forgery(file: UploadFile = File(...)):
     result = detector.predict(pil_image)
     process_ms = round((time.time() - t0) * 1000)
 
-    heatmap_b64 = generate_heatmap(pil_image, result["forged_mask"])
-
+    # Grad-CAM first so it can be used as fallback
     try:
         class_idx = 1 if result["verdict"] == "FORGED" else 0
         gradcam_b64 = generate_gradcam(
             pil_image, detector.model, detector.device, TRANSFORM, class_idx
         )
     except Exception:
+        gradcam_b64 = None
+
+    # SLIC+SIFT heatmap — use Grad-CAM when no regions detected
+    has_regions = (
+        result.get("forged_mask") is not None
+        and result["forged_mask"].max() > 0
+    )
+    if has_regions:
+        heatmap_b64 = generate_heatmap(pil_image, result["forged_mask"])
+    else:
+        heatmap_b64 = gradcam_b64 or generate_heatmap(pil_image, None)
+    if gradcam_b64 is None:
         gradcam_b64 = heatmap_b64
 
     orig_buf = io.BytesIO()

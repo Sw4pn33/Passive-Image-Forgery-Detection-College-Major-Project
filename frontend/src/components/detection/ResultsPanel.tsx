@@ -220,7 +220,9 @@ function ResultView({ item }: { item: StoredResult }) {
   const r = item.result;
   const m = r.forensic_meta;
   const forged = r.verdict === "FORGED";
-  const [heatmapMode, setHeatmapMode] = useState<"slic" | "gradcam">("slic");
+  const [heatmapMode, setHeatmapMode] = useState<"slic" | "gradcam">("gradcam");
+
+  const slicEmpty = m.sift_matches === 0 && m.outlier_segments === 0;
 
   const copySummary = async () => {
     const type = r.forgery_type.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -330,6 +332,11 @@ function ResultView({ item }: { item: StoredResult }) {
             </button>
           </div>
         </div>
+        {heatmapMode === "slic" && slicEmpty && (
+          <p className="mb-1.5 text-[10.5px] text-muted-foreground/70 italic">
+            SLIC/SIFT found no suspicious regions — backend returned Grad-CAM as fallback.
+          </p>
+        )}
         <CompareSlider
           original={item.originalDataUrl}
           heatmap={activeHeatmap}
