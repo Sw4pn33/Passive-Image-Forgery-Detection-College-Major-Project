@@ -6,10 +6,6 @@ from PIL import Image
 
 
 def generate_heatmap(pil_image: Image.Image, forgery_mask: np.ndarray | None) -> str:
-    """
-    Overlay a forgery heatmap on the original image.
-    Returns base64-encoded JPEG string.
-    """
     img_np = np.array(pil_image.convert("RGB"))
 
     if forgery_mask is None or forgery_mask.max() == 0:

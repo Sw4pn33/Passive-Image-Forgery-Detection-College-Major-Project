@@ -1,7 +1,3 @@
-"""
-Download trained model weights from Kaggle kernel output.
-Run: python download_model.py
-"""
 import os
 import shutil
 import subprocess

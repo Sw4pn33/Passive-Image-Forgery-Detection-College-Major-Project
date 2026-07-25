@@ -1,15 +1,3 @@
-"""
-CASIA Dataset Downloader
-------------------------
-Downloads CASIA v1.0 + v2.0 from Kaggle and organizes into train/val/test splits.
-
-Before running:
-    1. Go to https://www.kaggle.com/settings/account
-    2. Click "Create New Token" → downloads kaggle.json
-    3. Move kaggle.json to: C:\\Users\\<your_username>\\.kaggle\\kaggle.json
-    4. Run: python download_dataset.py
-"""
-
 import os
 import sys
 import shutil
@@ -67,7 +55,6 @@ def download_from_kaggle():
 
 
 def find_image_dirs(base: Path):
-    """Find authentic and forged image directories anywhere under base."""
     authentic_dirs, forged_dirs = [], []
 
     for d in base.rglob("*"):

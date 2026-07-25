@@ -1,14 +1,3 @@
-"""
-Dataset Setup for CASIA Image Forgery Detection
-
-Download sources:
-    CASIA v1.0  -> https://github.com/namtpham/casia1groundtruth
-    CASIA v2.0  -> http://forensics.idealtest.org/
-
-After downloading, run:
-    python dataset_setup.py --auth <path_to_authentic_folder> --forged <path_to_forged_folder>
-"""
-
 import os
 import shutil
 import random

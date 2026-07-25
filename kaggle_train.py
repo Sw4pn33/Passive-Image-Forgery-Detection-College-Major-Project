@@ -1,9 +1,3 @@
-# ============================================================
-#  ForensicVision — XONet Training on CASIA Dataset
-#  Paste this entire file into a Kaggle Notebook (Code cell)
-#  Enable GPU: Settings → Accelerator → GPU T4 x2 or P100
-# ============================================================
-
 import os, csv, random
 import numpy as np
 import torch
@@ -14,9 +8,8 @@ import torchvision.models as models
 from PIL import Image
 from tqdm import tqdm
 
-# ── Config ────────────────────────────────────────────────────
 INPUT_SIZE   = (256, 256)
-BATCH_SIZE   = 64          # Kaggle GPU has 16GB — can use larger batch
+BATCH_SIZE   = 64
 EPOCHS       = 40
 LR           = 1e-4
 SEED         = 42
@@ -38,7 +31,6 @@ if device.type == "cuda":
     print(f"VRAM   : {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
 
 
-# ── Dataset ───────────────────────────────────────────────────
 class ForgeryDataset(Dataset):
     def __init__(self, samples, transform=None):
         self.samples   = samples
@@ -56,7 +48,6 @@ class ForgeryDataset(Dataset):
 
 
 def collect_samples(root):
-    """Walk CASIA dirs and collect (path, label) pairs."""
     samples = []
     for dirpath, _, fnames in os.walk(root):
         dname = os.path.basename(dirpath).lower()
@@ -112,7 +103,6 @@ val_loader   = DataLoader(val_ds,   batch_size=BATCH_SIZE, shuffle=False, num_wo
 test_loader  = DataLoader(test_ds,  batch_size=BATCH_SIZE, shuffle=False, num_workers=4, pin_memory=True)
 
 
-# ── Model (EfficientNetB0 + custom head) ──────────────────────
 class XONetPretrained(nn.Module):
     def __init__(self, num_classes=2):
         super().__init__()
@@ -145,7 +135,6 @@ scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
 )
 
 
-# ── Training loop ─────────────────────────────────────────────
 def evaluate(loader):
     model.eval()
     loss_sum, correct, total = 0.0, 0, 0
@@ -202,14 +191,12 @@ for epoch in range(1, EPOCHS + 1):
             break
 
 
-# ── Save training log ─────────────────────────────────────────
 with open("/kaggle/working/training_log.csv", "w", newline="") as f:
     w = csv.writer(f)
     w.writerow(["epoch", "train_loss", "train_acc", "val_loss", "val_acc"])
     w.writerows(log_rows)
 
 
-# ── Final test evaluation ─────────────────────────────────────
 model.load_state_dict(torch.load(MODEL_PATH, map_location=device, weights_only=True))
 _, test_acc = evaluate(test_loader)
 
