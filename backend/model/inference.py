@@ -24,6 +24,7 @@ class ForgeryDetector:
     def __init__(self):
         self.model = None
         self.model_loaded = False
+        self.device = DEVICE
         self._load()
 
     def _load(self):

@@ -1,15 +1,19 @@
 import io
 import csv
 import os
+import time
+import base64
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 
 from model.inference import ForgeryDetector
 from utils.heatmap import generate_heatmap
-from config import MODEL_PATH
+from utils.gradcam import generate_gradcam
+from config import MODEL_PATH, INPUT_SIZE
+import torchvision.transforms as T
 
-app = FastAPI(title="Image Forgery Detection API", version="1.0.0")
+app = FastAPI(title="Image Forgery Detection API", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,6 +23,12 @@ app.add_middleware(
 )
 
 detector = ForgeryDetector()
+
+TRANSFORM = T.Compose([
+    T.Resize(INPUT_SIZE),
+    T.ToTensor(),
+    T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+])
 
 
 @app.get("/health")
@@ -37,16 +47,34 @@ async def detect_forgery(file: UploadFile = File(...)):
     except Exception:
         raise HTTPException(status_code=422, detail="Could not read the uploaded image.")
 
+    t0 = time.time()
     result = detector.predict(pil_image)
+    process_ms = round((time.time() - t0) * 1000)
+
     heatmap_b64 = generate_heatmap(pil_image, result["forged_mask"])
 
+    try:
+        class_idx = 1 if result["verdict"] == "FORGED" else 0
+        gradcam_b64 = generate_gradcam(
+            pil_image, detector.model, detector.device, TRANSFORM, class_idx
+        )
+    except Exception:
+        gradcam_b64 = heatmap_b64
+
+    orig_buf = io.BytesIO()
+    pil_image.save(orig_buf, format="JPEG", quality=92)
+    original_b64 = base64.b64encode(orig_buf.getvalue()).decode("utf-8")
+
     return {
-        "verdict":       result["verdict"],
-        "confidence":    result["confidence"],
-        "forgery_type":  result["forgery_type"],
-        "regions_found": result["regions_found"],
-        "heatmap":       heatmap_b64,
-        "forensic_meta": result.get("forensic_meta", {}),
+        "verdict":        result["verdict"],
+        "confidence":     result["confidence"],
+        "forgery_type":   result["forgery_type"],
+        "regions_found":  result["regions_found"],
+        "heatmap":        heatmap_b64,
+        "gradcam_jpeg":   gradcam_b64,
+        "original_jpeg":  original_b64,
+        "process_time_ms": process_ms,
+        "forensic_meta":  result.get("forensic_meta", {}),
     }
 
 
@@ -60,9 +88,9 @@ def training_history():
         reader = csv.DictReader(f)
         for row in reader:
             rows.append({
-                "epoch":     int(row["epoch"]),
-                "train_acc": round(float(row["train_acc"]) * 100, 2),
-                "val_acc":   round(float(row["val_acc"]) * 100, 2),
+                "epoch":      int(row["epoch"]),
+                "train_acc":  round(float(row["train_acc"]) * 100, 2),
+                "val_acc":    round(float(row["val_acc"]) * 100, 2),
                 "train_loss": round(float(row["train_loss"]), 4),
                 "val_loss":   round(float(row["val_loss"]), 4),
             })
