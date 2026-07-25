@@ -28,6 +28,6 @@ export async function getTrainingHistory(): Promise<TrainingHistory> {
 }
 
 export async function getHealth(): Promise<HealthStatus> {
-  const res = await fetch("/health");
+  const res = await fetch("/api/health");
   return jsonOrThrow<HealthStatus>(res);
 }
