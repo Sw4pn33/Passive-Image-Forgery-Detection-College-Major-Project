@@ -2,12 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   UploadCloud,
   X,
-  Sparkles,
+  ScanLine,
   ImageIcon,
   Layers,
   Fingerprint,
-  Flame,
-  Brain,
+  Map,
+  Cpu,
   WifiOff,
   RefreshCw,
   AlertCircle,
@@ -30,7 +30,7 @@ const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 function validateFile(f: File): string | null {
   const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
   if (!ALLOWED_EXT.includes(ext as (typeof ALLOWED_EXT)[number])) {
-    return `Unsupported file type “.${ext || "?"}”. Allowed: ${ALLOWED_EXT.join(", ")}.`;
+    return `Unsupported file type ".${ext || "?"}". Allowed: ${ALLOWED_EXT.join(", ")}.`;
   }
   if (f.size > MAX_SIZE_BYTES) {
     return `File too large (${(f.size / 1024 / 1024).toFixed(1)} MB). Max is ${MAX_SIZE_MB} MB.`;
@@ -142,7 +142,6 @@ export function UploadPanel({ onLoadingChange, onError }: Props) {
     mutation.mutate(file);
   }, [file, mutation, backendOnline]);
 
-  // shortcut hooks
   useEffect(() => {
     if (requestFilePicker > 0) inputRef.current?.click();
   }, [requestFilePicker]);
@@ -153,7 +152,6 @@ export function UploadPanel({ onLoadingChange, onError }: Props) {
     if (requestClear > 0) clear();
   }, [requestClear, clear]);
 
-  // Auto-toast when backend comes back online
   const prevOnlineRef = useRef(backendOnline);
   useEffect(() => {
     if (!prevOnlineRef.current && backendOnline) {
@@ -222,7 +220,7 @@ export function UploadPanel({ onLoadingChange, onError }: Props) {
           validationError
             ? "border-destructive/60 bg-destructive/[0.04]"
             : dragging
-              ? "border-primary bg-primary/5 shadow-[0_0_0_4px_rgba(46,124,246,0.1)]"
+              ? "border-primary bg-primary/5 shadow-[0_0_0_4px_rgba(37,99,235,0.1)]"
               : "border-border/70 bg-surface-2/30 hover:border-primary/60 hover:bg-primary/[0.03]",
         )}
       >
@@ -249,7 +247,7 @@ export function UploadPanel({ onLoadingChange, onError }: Props) {
           </div>
         ) : (
           <>
-            <div className="grid size-12 place-items-center rounded-2xl gradient-brand shadow-lg shadow-primary/25">
+            <div className="grid size-12 place-items-center rounded-2xl gradient-brand shadow-md shadow-primary/20">
               <UploadCloud className="size-6 text-white" />
             </div>
             <div className="mt-3 text-[14px] font-medium text-foreground">
@@ -281,9 +279,9 @@ export function UploadPanel({ onLoadingChange, onError }: Props) {
             onClick={analyze}
             disabled={mutation.isPending || !backendOnline}
             title={!backendOnline ? "Backend offline" : undefined}
-            className="flex-1 gradient-brand text-white border-0 shadow-md shadow-primary/25 hover:opacity-95 disabled:opacity-50"
+            className="flex-1 gradient-brand text-white border-0 shadow-sm shadow-primary/20 hover:opacity-95 disabled:opacity-50"
           >
-            <Sparkles className="size-4" />
+            <ScanLine className="size-4" />
             {mutation.isPending
               ? "Analyzing…"
               : !backendOnline
@@ -305,7 +303,7 @@ export function UploadPanel({ onLoadingChange, onError }: Props) {
         <ol className="mt-3 space-y-2.5">
           <PipelineStep
             n={1}
-            icon={Brain}
+            icon={Cpu}
             title="DCNN Classification"
             desc="EfficientNetB0 classifies authentic vs forged"
           />
@@ -323,7 +321,7 @@ export function UploadPanel({ onLoadingChange, onError }: Props) {
           />
           <PipelineStep
             n={4}
-            icon={Flame}
+            icon={Map}
             title="Heatmap Output"
             desc="JET-coloured overlay on detected regions"
           />
@@ -347,7 +345,7 @@ function PipelineStep({
   return (
     <li className="flex items-start gap-3">
       <div className="relative shrink-0">
-        <div className="grid size-8 place-items-center rounded-lg gradient-brand text-white shadow shadow-primary/20">
+        <div className="grid size-8 place-items-center rounded-lg gradient-brand text-white shadow shadow-primary/15">
           <Icon className="size-4" />
         </div>
         <div className="absolute -bottom-1 -right-1 grid size-4 place-items-center rounded-full bg-background border border-border mono text-[9px] font-semibold text-foreground">

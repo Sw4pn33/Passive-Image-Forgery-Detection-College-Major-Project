@@ -11,8 +11,8 @@
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -53,9 +53,60 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* ── Light mode (default) ───────────────────────────────────── */
 :root {
   --radius: 0.875rem;
-  /* Force dark forensic theme in both root and .dark */
+
+  --background: oklch(0.99 0.004 255);
+  --foreground: oklch(0.13 0.025 260);
+  --surface: oklch(0.96 0.008 255);
+  --surface-2: oklch(0.92 0.012 255);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.13 0.025 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.13 0.025 260);
+  --primary: oklch(0.52 0.2 258);
+  --primary-foreground: oklch(0.99 0.002 255);
+  --secondary: oklch(0.94 0.01 255);
+  --secondary-foreground: oklch(0.2 0.03 260);
+  --muted: oklch(0.95 0.008 255);
+  --muted-foreground: oklch(0.48 0.02 255);
+  --accent: oklch(0.94 0.01 255);
+  --accent-foreground: oklch(0.13 0.025 260);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.88 0.015 255);
+  --input: oklch(0.93 0.01 255);
+  --ring: oklch(0.52 0.2 258);
+  --teal: oklch(0.48 0.14 180);
+  --warn: oklch(0.56 0.16 70);
+  --good: oklch(0.46 0.17 155);
+  --chart-1: oklch(0.52 0.2 258);
+  --chart-2: oklch(0.48 0.14 180);
+  --chart-3: oklch(0.56 0.16 70);
+  --chart-4: oklch(0.55 0.22 25);
+  --chart-5: oklch(0.46 0.17 155);
+  --sidebar: oklch(0.97 0.006 255);
+  --sidebar-foreground: oklch(0.13 0.025 260);
+  --sidebar-primary: oklch(0.52 0.2 258);
+  --sidebar-primary-foreground: oklch(0.99 0.002 255);
+  --sidebar-accent: oklch(0.93 0.01 255);
+  --sidebar-accent-foreground: oklch(0.13 0.025 260);
+  --sidebar-border: oklch(0.88 0.015 255);
+  --sidebar-ring: oklch(0.52 0.2 258);
+
+  --gradient-brand: linear-gradient(135deg, #2563eb, #0d9488);
+  --glass-card-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
+  --header-bg: rgba(255, 255, 255, 0.85);
+  --footer-bg: rgba(248, 250, 252, 0.8);
+  --shadow-glass: 0 1px 0 0 rgba(255, 255, 255, 0.8) inset, 0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  --grid-line: rgba(37, 99, 235, 0.04);
+}
+
+/* ── Dark mode ──────────────────────────────────────────────── */
+.dark {
+  color-scheme: dark;
+
   --background: oklch(0.12 0.03 260);
   --foreground: oklch(0.96 0.01 250);
   --surface: oklch(0.17 0.035 260);
@@ -95,12 +146,11 @@
   --sidebar-ring: oklch(0.66 0.19 258);
 
   --gradient-brand: linear-gradient(135deg, #2e7cf6, #00d4aa);
-  --shadow-glass: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
-    0 20px 40px -20px rgba(0, 0, 0, 0.6);
-}
-
-.dark {
-  color-scheme: dark;
+  --glass-card-bg: linear-gradient(180deg, rgba(20, 32, 56, 0.7), rgba(13, 21, 38, 0.7));
+  --header-bg: rgba(6, 11, 20, 0.85);
+  --footer-bg: rgba(6, 11, 20, 0.6);
+  --shadow-glass: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset, 0 20px 40px -20px rgba(0, 0, 0, 0.6);
+  --grid-line: rgba(46, 124, 246, 0.04);
 }
 
 @layer base {
@@ -110,7 +160,7 @@
 
   html,
   body {
-    background-color: #060b14;
+    background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -118,27 +168,27 @@
 
   body {
     background-image:
-      linear-gradient(rgba(46, 124, 246, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(46, 124, 246, 0.04) 1px, transparent 1px);
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 48px 48px;
     background-attachment: fixed;
   }
 }
 
 @utility glass-card {
-  background: linear-gradient(180deg, rgba(20, 32, 56, 0.7), rgba(13, 21, 38, 0.7));
+  background: var(--glass-card-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-glass);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(8px);
 }
 
 @utility gradient-brand {
-  background-image: linear-gradient(135deg, #2e7cf6, #00d4aa);
+  background-image: var(--gradient-brand);
 }
 
 @utility gradient-brand-text {
-  background-image: linear-gradient(135deg, #2e7cf6, #00d4aa);
+  background-image: var(--gradient-brand);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -162,7 +212,7 @@
 }
 
 @utility animate-result {
-  animation: result-in 0.4s ease-out both;
+  animation: result-in 0.35s ease-out both;
 }
 
 @keyframes scan-sweep {

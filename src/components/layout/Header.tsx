@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Shield, History, Keyboard } from "lucide-react";
+import { ShieldCheck, History, Keyboard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BackendStatusPill } from "./BackendStatusPill";
@@ -17,11 +17,14 @@ export function Header() {
   const history = useHistory();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/70 bg-[#060b14]/80 backdrop-blur-xl">
+    <header
+      className="sticky top-0 z-40 border-b border-border/70 backdrop-blur-xl"
+      style={{ background: "var(--header-bg)" }}
+    >
       <div className="mx-auto flex max-w-[1400px] items-center gap-6 px-6 py-3.5">
         <Link to="/" className="flex items-center gap-3 shrink-0">
-          <div className="grid size-10 place-items-center rounded-xl gradient-brand shadow-lg shadow-primary/20">
-            <Shield className="size-5 text-white" strokeWidth={2.25} />
+          <div className="grid size-10 place-items-center rounded-xl gradient-brand shadow-md shadow-primary/20">
+            <ShieldCheck className="size-5 text-white" strokeWidth={2} />
           </div>
           <div className="hidden sm:block">
             <div className="text-[15px] font-semibold tracking-tight text-foreground leading-tight">
@@ -42,7 +45,7 @@ export function Header() {
               className="px-4 py-1.5 text-[13px] font-medium rounded-full text-muted-foreground hover:text-foreground transition-colors"
               activeProps={{
                 className:
-                  "px-4 py-1.5 text-[13px] font-medium rounded-full text-foreground gradient-brand shadow-md shadow-primary/30",
+                  "px-4 py-1.5 text-[13px] font-medium rounded-full text-white gradient-brand shadow-sm shadow-primary/20",
               }}
             >
               {t.label}
@@ -61,7 +64,7 @@ export function Header() {
           <Button
             variant="outline"
             size="sm"
-            className="relative border-border/70 bg-surface/60"
+            className="relative border-border/70 bg-background/60"
             onClick={() => setHistoryOpen(true)}
           >
             <History className="size-4" />
@@ -82,10 +85,10 @@ export function Header() {
               key={t.to}
               to={t.to}
               activeOptions={{ exact: true }}
-              className="px-3 py-1.5 text-xs font-medium rounded-full text-muted-foreground whitespace-nowrap"
+              className="px-3 py-1.5 text-xs font-medium rounded-full text-muted-foreground whitespace-nowrap hover:text-foreground transition-colors"
               activeProps={{
                 className:
-                  "px-3 py-1.5 text-xs font-medium rounded-full text-foreground gradient-brand",
+                  "px-3 py-1.5 text-xs font-medium rounded-full text-white gradient-brand whitespace-nowrap",
               }}
             >
               {t.label}
