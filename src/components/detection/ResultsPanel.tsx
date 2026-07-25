@@ -151,6 +151,22 @@ function ResultView({ item }: { item: StoredResult }) {
             size="sm"
             variant="outline"
             onClick={async () => {
+              try {
+                await downloadAnnotatedPng(item, overlayOpacity);
+                toast.success("Annotated PNG downloaded");
+              } catch {
+                toast.error("Failed to render annotated PNG");
+              }
+            }}
+            className="border-border/70"
+          >
+            <ImageDown className="size-3.5" />
+            PNG
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={async () => {
               await downloadPdf(item);
               toast.success("Report downloaded (PDF)");
             }}
@@ -161,6 +177,7 @@ function ResultView({ item }: { item: StoredResult }) {
           </Button>
         </div>
       </div>
+
 
       {/* verdict */}
       <div
