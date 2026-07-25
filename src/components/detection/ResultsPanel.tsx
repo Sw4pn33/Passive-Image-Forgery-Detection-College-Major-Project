@@ -1,10 +1,12 @@
-import { ShieldCheck, AlertTriangle, Loader2, Copy, FileText, FileDown, CheckCircle2, XCircle, Layers } from "lucide-react";
+import { ShieldCheck, AlertTriangle, Loader2, Copy, FileText, FileDown, CheckCircle2, XCircle, Layers, ImageDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import { MetricCell } from "@/components/common/MetricCell";
 import { ScoreBar } from "@/components/common/ScoreBar";
 import { downloadPdf, downloadTxt } from "@/lib/reports";
+import { downloadAnnotatedPng } from "@/lib/annotated";
 import type { StoredResult } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -92,10 +94,12 @@ function ResultView({ item }: { item: StoredResult }) {
   const forged = r.verdict === "FORGED";
 
   const [barW, setBarW] = useState(0);
+  const [overlayOpacity, setOverlayOpacity] = useState(0.6);
   useEffect(() => {
     const t = requestAnimationFrame(() => setBarW(r.confidence));
     return () => cancelAnimationFrame(t);
   }, [r.confidence]);
+
 
   const copySummary = async () => {
     const type = r.forgery_type
@@ -147,6 +151,22 @@ function ResultView({ item }: { item: StoredResult }) {
             size="sm"
             variant="outline"
             onClick={async () => {
+              try {
+                await downloadAnnotatedPng(item, overlayOpacity);
+                toast.success("Annotated PNG downloaded");
+              } catch {
+                toast.error("Failed to render annotated PNG");
+              }
+            }}
+            className="border-border/70"
+          >
+            <ImageDown className="size-3.5" />
+            PNG
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={async () => {
               await downloadPdf(item);
               toast.success("Report downloaded (PDF)");
             }}
@@ -157,6 +177,7 @@ function ResultView({ item }: { item: StoredResult }) {
           </Button>
         </div>
       </div>
+
 
       {/* verdict */}
       <div
@@ -230,16 +251,22 @@ function ResultView({ item }: { item: StoredResult }) {
           </figcaption>
         </figure>
         <figure className="rounded-xl border border-border/70 bg-surface/40 overflow-hidden">
-          <div className="aspect-video bg-black/40 grid place-items-center">
+          <div className="relative aspect-video bg-black/40 grid place-items-center">
             <img
-              src={`data:image/jpeg;base64,${r.heatmap}`}
-              alt="heatmap"
+              src={item.originalDataUrl}
+              alt="original underlay"
               className="max-h-full max-w-full object-contain"
             />
+            <img
+              src={`data:image/jpeg;base64,${r.heatmap}`}
+              alt="heatmap overlay"
+              style={{ opacity: overlayOpacity }}
+              className="absolute inset-0 m-auto max-h-full max-w-full object-contain pointer-events-none transition-opacity"
+            />
           </div>
-          <figcaption className="px-3 py-2 flex items-center justify-between">
+          <figcaption className="px-3 py-2 flex items-center justify-between gap-2">
             <span className="text-[11px] text-muted-foreground uppercase tracking-wider">
-              Forgery Heatmap
+              Heatmap Overlay
             </span>
             <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
               <span className="size-2 rounded-sm bg-blue-500" /> low
@@ -249,6 +276,29 @@ function ResultView({ item }: { item: StoredResult }) {
           </figcaption>
         </figure>
       </div>
+
+      {/* opacity control */}
+      <div className="rounded-xl border border-border/70 bg-surface/40 px-4 py-3">
+        <div className="flex items-center justify-between text-[11.5px]">
+          <label htmlFor="opacity-slider" className="text-muted-foreground uppercase tracking-wider">
+            Heatmap Opacity
+          </label>
+          <span className="mono font-semibold text-foreground">
+            {Math.round(overlayOpacity * 100)}%
+          </span>
+        </div>
+        <Slider
+          id="opacity-slider"
+          className="mt-2.5"
+          value={[Math.round(overlayOpacity * 100)]}
+          min={0}
+          max={100}
+          step={1}
+          onValueChange={(v) => setOverlayOpacity((v[0] ?? 60) / 100)}
+          aria-label="Heatmap overlay opacity"
+        />
+      </div>
+
 
       {/* diagnostics */}
       {forged && (
