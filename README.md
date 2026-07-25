@@ -1,40 +1,46 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=24&height=200&section=header&text=Passive%20Image%20Forgery%20Detection&fontSize=36&fontAlignY=38&desc=Hybrid%20Deep%20Learning%20%2B%20Classical%20CV%20Pipeline&descAlignY=58&animation=fadeIn&fontColor=ffffff" width="100%"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=24&height=220&section=header&text=Passive%20Image%20Forgery%20Detection&fontSize=34&fontAlignY=40&desc=Hybrid%20Deep%20Learning%20%2B%20Classical%20CV%20Pipeline&descAlignY=58&animation=fadeIn&fontColor=ffffff" width="100%"/>
 
 <br/>
 
-### 🌐 Live Demo
-
-<a href="https://forensic-vision.vercel.app" target="_blank">
-  <img src="https://img.shields.io/badge/%F0%9F%94%AC%20Try%20it%20now-forensic--vision.vercel.app-7c3aed?style=for-the-badge&logoColor=white" alt="Live Demo"/>
+<a href="https://forensic-vision.vercel.app">
+  <img src="https://img.shields.io/badge/🔬%20Live%20Demo-forensic--vision.vercel.app-7c3aed?style=for-the-badge&logoColor=white" height="36"/>
 </a>
 
 <br/><br/>
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-&nbsp;
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org)
-&nbsp;
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-&nbsp;
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![Vercel](https://img.shields.io/badge/Deployed-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://forensic-vision.vercel.app)
 
 <br/>
 
-[![Dataset](https://img.shields.io/badge/Dataset-CASIA%20v1.0-ff6b6b?style=for-the-badge&logo=databricks&logoColor=white)](http://forensics.idealtest.org/)
-&nbsp;
-[![Model](https://img.shields.io/badge/Backbone-EfficientNetB0-4ecdc4?style=for-the-badge&logo=tensorflow&logoColor=white)]()
-&nbsp;
-[![Training](https://img.shields.io/badge/Trained%20on-Kaggle%20GPU%20T4-20BEFF?style=for-the-badge&logo=kaggle&logoColor=white)](https://kaggle.com)
+[![Dataset](https://img.shields.io/badge/Dataset-CASIA%20v1.0-ff6b6b?style=for-the-badge)](http://forensics.idealtest.org/)
+[![Model](https://img.shields.io/badge/Backbone-EfficientNetB0-4ecdc4?style=for-the-badge)]()
+[![Training](https://img.shields.io/badge/GPU-Kaggle%20T4-20BEFF?style=for-the-badge&logo=kaggle&logoColor=white)](https://kaggle.com)
+
+<br/><br/>
+
+[![Val Accuracy](https://img.shields.io/badge/Val%20Accuracy-~80%25-7c3aed?style=flat-square)]()
+&nbsp;·&nbsp;
+[![Images](https://img.shields.io/badge/Training%20Images-1842-009688?style=flat-square)]()
+&nbsp;·&nbsp;
+[![Classes](https://img.shields.io/badge/Classes-Authentic%20%7C%20Forged-EE4C2C?style=flat-square)]()
+&nbsp;·&nbsp;
+[![Resolution](https://img.shields.io/badge/Input%20Size-256×256-3776AB?style=flat-square)]()
 
 </div>
 
+<br/>
+
 ---
 
-## 📄 What this paper is about
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Microscope.gif" width="30" alt="paper"/> What this paper is about</h2>
 
-Image forgery — splicing objects from different sources, duplicating regions within the same photo — is increasingly hard to spot with the naked eye. The goal of **passive forgery detection** is to catch these manipulations using only the pixel data, with no prior embedding of watermarks or signatures (hence "passive").
+Image forgery — splicing objects from different sources, duplicating regions within the same photo — is increasingly hard to spot with the naked eye. The goal of **passive forgery detection** is to catch these manipulations using only pixel data, with no prior embedding of watermarks or signatures (hence "passive").
 
 Most academic work falls into one of two camps: either a neural network that gives you a binary label (real/fake) without telling you *where* the forgery is, or classical signal-processing methods (noise analysis, JPEG artifact grids, DCT coefficient statistics) that struggle once the image has been recompressed, resized, or color-corrected.
 
@@ -42,7 +48,7 @@ Neither approach alone is satisfying. A classification score without spatial evi
 
 ---
 
-## 🕳️ The gap we're addressing
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Magnifying%20Glass%20Tilted%20Left.gif" width="30" alt="gap"/> The gap we're addressing</h2>
 
 Here's what the existing literature leaves on the table:
 
@@ -54,79 +60,85 @@ Here's what the existing literature leaves on the table:
 | **Compressed images** | Fail on JPEG artifacts | EfficientNetB0 features are compression-robust |
 | **End-to-end deployment** | Lab code, no interface | Full REST API + interactive web frontend |
 
-Classical SIFT-based copy-move detectors work well when forged regions aren't rotated or scaled much, but break on post-processing. Pure CNNs generalize better to post-processed images but can't localize. The hybrid pipeline here runs both and combines their outputs.
+Classical SIFT-based copy-move detectors work well when forged regions aren't heavily transformed, but break on post-processing. Pure CNNs generalize better but can't localize. This pipeline runs both and combines their outputs.
 
 ---
 
-## 🏗️ Architecture
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Puzzle%20Piece.gif" width="30" alt="architecture"/> Architecture</h2>
 
 ```
 Input Image
     │
-    ├──► EfficientNetB0 ──► Global classification (AUTHENTIC / FORGED)
+    ├──► EfficientNetB0 ──► Global classification  (AUTHENTIC / FORGED)
     │         │
-    │         └──► Grad-CAM ──► Activation heatmap (where the model looks)
+    │         └──► Grad-CAM ──► Activation heatmap  (where the model looks)
     │
     └──► SLIC superpixels ──► SIFT keypoint extraction
               │
               └──► FLANN matcher + RANSAC ──► Copy-move region mask
                         │
-                        └──► JET colormap heatmap (suspect regions)
+                        └──► JET colormap heatmap  (suspect regions)
 
-FastAPI REST endpoint combines both outputs → JSON response
-React frontend renders comparison slider + side-by-side forensic view
+FastAPI /api/detect  →  JSON: verdict + confidence + heatmap + gradcam
+React frontend  →  drag-drop upload, comparison slider, heatmap toggle
 ```
 
 ---
 
-## 🗃️ Dataset
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Card%20File%20Box.gif" width="30" alt="dataset"/> Dataset</h2>
 
-**CASIA v1.0** — 921 authentic images, 921 forged images (copy-move and splicing), JPEG format, ~384×256 resolution average.
+**CASIA v1.0** — 921 authentic + 921 forged images (copy-move and splicing), JPEG, ~384×256 average resolution.
 
 ```
 dataset/
-├── train/
-│   ├── authentic/     # ~720 images
-│   └── forged/        # ~720 images
-├── val/
-│   ├── authentic/     # ~100 images
-│   └── forged/        # ~100 images
-└── test/
-    ├── authentic/     # ~100 images
-    └── forged/        # ~100 images
+├── train/    authentic/ (720)    forged/ (720)
+├── val/      authentic/ (100)    forged/ (100)
+└── test/     authentic/ (100)    forged/ (100)
 ```
 
-Sample images from the dataset are in [`samples/`](./samples/) — 5 authentic and 5 forged, ready to test against the live demo without needing the full dataset.
+Quick-start samples in [`samples/`](./samples/) — 5 authentic + 5 forged from the CASIA test set, ready to drop into the live demo.
 
 ---
 
-## 🛠️ What we built
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Hammer%20and%20Wrench.gif" width="30" alt="built"/> What we built</h2>
 
-- **Hybrid detector** — EfficientNetB0 backbone fine-tuned on CASIA, plus a SLIC+SIFT pipeline for spatial localization
-- **Grad-CAM fallback** — when SLIC/SIFT finds no suspicious keypoints (e.g., splicing rather than copy-move), Grad-CAM activations are shown instead so you always get a spatial explanation
-- **Interactive web tool** — drag-and-drop upload, confidence score, forgery type label, before/after comparison slider, heatmap toggle between Grad-CAM and SLIC views
-- **REST API** — single `/api/detect` endpoint, returns verdict + confidence + base64-encoded heatmap + original image
+- **Hybrid detector** — EfficientNetB0 fine-tuned on CASIA, plus SLIC+SIFT for spatial localization of copy-move regions
+- **Grad-CAM fallback** — when SLIC/SIFT finds no keypoints (splicing attacks), Grad-CAM activations are shown so there's always a spatial explanation
+- **Interactive web tool** — drag-and-drop upload, confidence bar, forgery type label, before/after comparison slider, heatmap tab switching
+- **REST API** — `/api/detect` returns verdict + confidence + base64 heatmap + original; `/api/training-history` serves live training curves
 
 ---
 
-## 📊 Results
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Bar%20Chart.gif" width="30" alt="results"/> Results</h2>
+
+<div align="center">
+
+[![Val Accuracy](https://img.shields.io/badge/Epoch%201%20Val%20Accuracy-~80%25-7c3aed?style=for-the-badge)]()
+&nbsp;
+[![Optimizer](https://img.shields.io/badge/Optimizer-Adam%20lr%3D1e--4-009688?style=for-the-badge)]()
+&nbsp;
+[![Epochs](https://img.shields.io/badge/Epochs%20Configured-50-EE4C2C?style=for-the-badge)]()
+
+</div>
+
+<br/>
 
 | Metric | Value |
 |---|---|
 | Validation accuracy (Epoch 1) | ~80% |
-| Training epochs configured | 50 |
 | Input resolution | 256 × 256 |
 | Batch size | 32 |
-| Optimizer | Adam, lr=1e-4 |
+| Backbone | EfficientNetB0 (ImageNet pretrained) |
+| Loss | CrossEntropyLoss |
 
-Training ran on Kaggle GPU T4. The model checkpoint (`dcnn_forgery.pt`) is not in this repo due to size — see the Kaggle notebook Output tab to download it.
+Training ran on Kaggle GPU T4. The model checkpoint (`dcnn_forgery.pt`) isn't in this repo due to file size — download it from the Kaggle notebook's Output tab and place at `backend/model/weights/dcnn_forgery.pt`.
 
 ---
 
-## ⚙️ Tech stack
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Gear.gif" width="30" alt="stack"/> Tech stack</h2>
 
 <div align="center">
-  <img src="https://skillicons.dev/icons?i=python,pytorch,fastapi,react,ts,tailwind,vite,vercel" />
+  <img src="https://skillicons.dev/icons?i=python,pytorch,fastapi,opencv,react,ts,tailwind,vite,vercel" />
 </div>
 
 <br/>
@@ -139,127 +151,137 @@ Training ran on Kaggle GPU T4. The model checkpoint (`dcnn_forgery.pt`) is not i
 | API | FastAPI 0.111, uvicorn, python-multipart |
 | Frontend | React 19, TanStack Start, TypeScript, Tailwind CSS v4 |
 | Charts | Recharts (training history page) |
-| Deployment | Vercel (frontend), VPS (backend, FastAPI + PM2) |
+| Deployment | Vercel (frontend), VPS (backend via PM2) |
 
 ---
 
-## 💻 Installation
-
-### Prerequisites
-
-- Python 3.12+
-- Node.js 18+
-- The trained model file `dcnn_forgery.pt` placed at `backend/model/weights/dcnn_forgery.pt`
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Laptop.gif" width="30" alt="install"/> Installation</h2>
 
 ### Backend
 
 ```bash
 cd backend
 
-# create a virtual environment
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 
-# install dependencies
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 pip install fastapi==0.111.0 uvicorn[standard]==0.30.1 python-multipart==0.0.9 \
             pillow==10.3.0 numpy==1.26.4 opencv-python==4.10.0.82 \
             scikit-image==0.23.2 scikit-learn==1.5.0 scipy==1.13.1
 
-# start the server
 uvicorn app:app --host 0.0.0.0 --port 8000
 ```
 
-Verify it's running:
 ```bash
 curl http://localhost:8000/health
 # {"status":"ok","model_loaded":true}
 ```
 
-### Frontend (development)
+### Frontend
 
 ```bash
 cd frontend
 npm install
 npm run dev
-# opens at http://localhost:3000
+# http://localhost:3000  →  proxied to backend automatically
 ```
 
-The dev server proxies `/api/*` to `localhost:8000` automatically — no extra config needed.
-
-### Training from scratch
+### Train from scratch
 
 ```bash
 cd backend
 python model/train.py
-# saves checkpoint → backend/model/weights/dcnn_forgery.pt
-# training log → backend/model/weights/training_log.csv
+# checkpoint → backend/model/weights/dcnn_forgery.pt
+# log        → backend/model/weights/training_log.csv
 ```
 
-CPU training will be very slow. Use Kaggle (free T4 GPU) or any CUDA environment. Download the checkpoint from the notebook's Output tab when done.
+Use Kaggle or any CUDA environment — CPU training will take hours per epoch.
 
 ---
 
-## 🌐 Live demo
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20Places/Globe%20with%20Meridians.gif" width="30" alt="demo"/> Live demo</h2>
+
+<div align="center">
 
 **[https://forensic-vision.vercel.app](https://forensic-vision.vercel.app)**
 
-The backend API runs on a VPS and responds within 2–4 seconds per image. Drop any JPEG, PNG, or TIFF into the upload panel. The [`samples/forged/`](./samples/forged/) images are a good starting point — those are real CASIA forgeries from the test set.
+The backend processes each image in 2–4 seconds. Grab an image from [`samples/forged/`](./samples/forged/) and drop it in — those are real CASIA forgeries from the test split.
+
+</div>
 
 ---
 
-## 📁 Project layout
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Open%20File%20Folder.gif" width="30" alt="layout"/> Project layout</h2>
 
 ```
 .
 ├── backend/
-│   ├── app.py                  # FastAPI application + detect endpoint
-│   ├── config.py               # Hyperparameters, paths
-│   ├── requirements.txt
+│   ├── app.py                 # FastAPI app + /api/detect endpoint
+│   ├── config.py              # Hyperparameters, paths
 │   ├── model/
-│   │   ├── inference.py        # ForgeryDetector class
-│   │   ├── train.py            # Training script
-│   │   ├── dataset.py          # CASIA dataset loader
-│   │   └── weights/            # dcnn_forgery.pt (download separately)
+│   │   ├── inference.py       # ForgeryDetector class
+│   │   ├── train.py           # Training loop
+│   │   ├── dataset.py         # CASIA dataloader
+│   │   └── weights/           # Place dcnn_forgery.pt here
 │   └── utils/
-│       ├── heatmap.py          # SLIC+SIFT → JET colormap
-│       └── gradcam.py          # Grad-CAM hook implementation
+│       ├── heatmap.py         # SLIC+SIFT → JET heatmap
+│       └── gradcam.py         # Grad-CAM hook
 ├── frontend/
 │   ├── src/
-│   │   ├── routes/             # TanStack file-based routes
-│   │   ├── components/         # React UI components
-│   │   └── lib/                # API client, TypeScript types
-│   └── static/                 # Pre-built deployment output (served by Vercel)
+│   │   ├── routes/            # File-based routes (TanStack)
+│   │   ├── components/        # React components
+│   │   └── lib/               # API client, types
+│   └── static/                # Pre-built output served by Vercel
 ├── samples/
-│   ├── authentic/              # 5 CASIA authentic samples
-│   └── forged/                 # 5 CASIA forged samples
-├── dataset/                    # gitignored — run dataset_setup.py to populate
+│   ├── authentic/             # 5 CASIA authentic test images
+│   └── forged/                # 5 CASIA forged test images
 └── paper/
     └── Passive image.pdf
 ```
 
 ---
 
-## ⚠️ Limitations
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20Places/Warning.gif" width="30" alt="limits"/> Limitations</h2>
 
-This model was trained only on CASIA v1.0, which is relatively small and older. It will likely underperform on:
-- AI-generated images (DALL-E, Stable Diffusion, Midjourney outputs)
-- Professionally retouched photos with content-aware fill or inpainting
-- Images with heavy JPEG compression below quality 50
+CASIA v1.0 is small and dated by modern standards. The model will struggle with:
+- AI-generated images (Stable Diffusion, Midjourney, DALL-E)
+- Content-aware fill or inpainting from Photoshop
+- Heavy JPEG compression below quality ~50
 
-The SIFT-based copy-move detector also struggles when forged regions are scaled by more than ~30% or rotated beyond ~45°. Grad-CAM helps as a fallback, but it's a saliency map, not a precise forgery mask.
+The SIFT copy-move detector also breaks when regions are scaled beyond ~30% or rotated past ~45°. Grad-CAM provides a fallback explanation but it's a saliency map, not a pixel-precise forgery mask.
 
 ---
 
-## 🤝 Collaborators
+<h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Handshake.gif" width="30" alt="team"/> Collaborators</h2>
 
 <div align="center">
 
-| | Name | Role |
-|:---:|---|---|
-| <img src="https://github.com/Sw4pn33.png" width="48" style="border-radius:50%"/> | **Swopna Sarit Barik** · [@Sw4pn33](https://github.com/Sw4pn33) | Lead Developer |
-| <img src="https://github.com/r4hul-s3thi.png" width="48" style="border-radius:50%"/> | **Rahul Sethi** · [@r4hul-s3thi](https://github.com/r4hul-s3thi) | Researcher |
-| <img src="https://github.com/akifalik.png" width="48" style="border-radius:50%"/> | **Akif Ali Khan** · [@akifalik](https://github.com/akifalik) | Researcher |
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/Sw4pn33">
+        <img src="https://github.com/Sw4pn33.png" width="80" style="border-radius:50%"/><br/>
+        <b>Swopna Sarit Barik</b><br/>
+        <sub>@Sw4pn33</sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/r4hul-s3thi">
+        <img src="https://github.com/r4hul-s3thi.png" width="80" style="border-radius:50%"/><br/>
+        <b>Rahul Sethi</b><br/>
+        <sub>@r4hul-s3thi</sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/akifalik">
+        <img src="https://github.com/akifalik.png" width="80" style="border-radius:50%"/><br/>
+        <b>Akif Ali Khan</b><br/>
+        <sub>@akifalik</sub>
+      </a>
+    </td>
+  </tr>
+</table>
 
 </div>
 
@@ -267,7 +289,7 @@ The SIFT-based copy-move detector also struggles when forged regions are scaled 
 
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=24&height=100&section=footer&animation=fadeIn" width="100%"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=24&height=120&section=footer&animation=fadeIn" width="100%"/>
 
 *College Major Project — Image Forensics*
 
