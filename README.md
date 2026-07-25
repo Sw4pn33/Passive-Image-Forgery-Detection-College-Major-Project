@@ -4,8 +4,14 @@
 
 <br/>
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-forensic--vision.vercel.app-7c3aed?style=for-the-badge&logo=vercel&logoColor=white)](https://forensic-vision.vercel.app)
-&nbsp;
+### 🌐 Live Demo
+
+<a href="https://forensic-vision.vercel.app" target="_blank">
+  <img src="https://img.shields.io/badge/%F0%9F%94%AC%20Try%20it%20now-forensic--vision.vercel.app-7c3aed?style=for-the-badge&logoColor=white" alt="Live Demo"/>
+</a>
+
+<br/><br/>
+
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 &nbsp;
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org)
@@ -26,7 +32,7 @@
 
 ---
 
-## What this paper is about
+## 📄 What this paper is about
 
 Image forgery — splicing objects from different sources, duplicating regions within the same photo — is increasingly hard to spot with the naked eye. The goal of **passive forgery detection** is to catch these manipulations using only the pixel data, with no prior embedding of watermarks or signatures (hence "passive").
 
@@ -36,7 +42,7 @@ Neither approach alone is satisfying. A classification score without spatial evi
 
 ---
 
-## The gap we're addressing
+## 🕳️ The gap we're addressing
 
 Here's what the existing literature leaves on the table:
 
@@ -52,7 +58,7 @@ Classical SIFT-based copy-move detectors work well when forged regions aren't ro
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 ```
 Input Image
@@ -73,7 +79,7 @@ React frontend renders comparison slider + side-by-side forensic view
 
 ---
 
-## Dataset
+## 🗃️ Dataset
 
 **CASIA v1.0** — 921 authentic images, 921 forged images (copy-move and splicing), JPEG format, ~384×256 resolution average.
 
@@ -94,16 +100,16 @@ Sample images from the dataset are in [`samples/`](./samples/) — 5 authentic a
 
 ---
 
-## What we built
+## 🛠️ What we built
 
-- **Hybrid detector**: EfficientNetB0 backbone fine-tuned on CASIA, plus a SLIC+SIFT pipeline for spatial localization
-- **Grad-CAM fallback**: when SLIC/SIFT finds no suspicious keypoints (e.g., splicing rather than copy-move), Grad-CAM activations are shown instead — so you always get a spatial explanation
-- **Interactive web tool**: drag-and-drop upload, confidence score, forgery type label, before/after comparison slider, heatmap toggle between Grad-CAM and SLIC views
-- **REST API**: single `/api/detect` endpoint, returns verdict + confidence + base64-encoded heatmap + original image
+- **Hybrid detector** — EfficientNetB0 backbone fine-tuned on CASIA, plus a SLIC+SIFT pipeline for spatial localization
+- **Grad-CAM fallback** — when SLIC/SIFT finds no suspicious keypoints (e.g., splicing rather than copy-move), Grad-CAM activations are shown instead so you always get a spatial explanation
+- **Interactive web tool** — drag-and-drop upload, confidence score, forgery type label, before/after comparison slider, heatmap toggle between Grad-CAM and SLIC views
+- **REST API** — single `/api/detect` endpoint, returns verdict + confidence + base64-encoded heatmap + original image
 
 ---
 
-## Results
+## 📊 Results
 
 | Metric | Value |
 |---|---|
@@ -117,7 +123,13 @@ Training ran on Kaggle GPU T4. The model checkpoint (`dcnn_forgery.pt`) is not i
 
 ---
 
-## Tech stack
+## ⚙️ Tech stack
+
+<div align="center">
+  <img src="https://skillicons.dev/icons?i=python,pytorch,fastapi,react,ts,tailwind,vite,vercel" />
+</div>
+
+<br/>
 
 | Layer | Technology |
 |---|---|
@@ -131,20 +143,20 @@ Training ran on Kaggle GPU T4. The model checkpoint (`dcnn_forgery.pt`) is not i
 
 ---
 
-## Installation
+## 💻 Installation
 
 ### Prerequisites
 
 - Python 3.12+
 - Node.js 18+
-- The trained model file `dcnn_forgery.pt` in `backend/model/weights/`
+- The trained model file `dcnn_forgery.pt` placed at `backend/model/weights/dcnn_forgery.pt`
 
 ### Backend
 
 ```bash
 cd backend
 
-# create virtual environment
+# create a virtual environment
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 
@@ -154,12 +166,11 @@ pip install fastapi==0.111.0 uvicorn[standard]==0.30.1 python-multipart==0.0.9 \
             pillow==10.3.0 numpy==1.26.4 opencv-python==4.10.0.82 \
             scikit-image==0.23.2 scikit-learn==1.5.0 scipy==1.13.1
 
-# place your model weights at backend/model/weights/dcnn_forgery.pt
-# then start the server
+# start the server
 uvicorn app:app --host 0.0.0.0 --port 8000
 ```
 
-Health check:
+Verify it's running:
 ```bash
 curl http://localhost:8000/health
 # {"status":"ok","model_loaded":true}
@@ -171,73 +182,86 @@ curl http://localhost:8000/health
 cd frontend
 npm install
 npm run dev
-# open http://localhost:3000
+# opens at http://localhost:3000
 ```
 
-The dev server proxies `/api/*` to `localhost:8000` automatically.
+The dev server proxies `/api/*` to `localhost:8000` automatically — no extra config needed.
 
 ### Training from scratch
 
 ```bash
 cd backend
 python model/train.py
-# logs to model/weights/training_log.csv
-# saves checkpoint to model/weights/dcnn_forgery.pt
+# saves checkpoint → backend/model/weights/dcnn_forgery.pt
+# training log → backend/model/weights/training_log.csv
 ```
 
-Running training locally on CPU will be very slow — use Kaggle or any GPU environment. Upload the checkpoint back to `backend/model/weights/dcnn_forgery.pt`.
+CPU training will be very slow. Use Kaggle (free T4 GPU) or any CUDA environment. Download the checkpoint from the notebook's Output tab when done.
 
 ---
 
-## Live demo
+## 🌐 Live demo
 
 **[https://forensic-vision.vercel.app](https://forensic-vision.vercel.app)**
 
-The backend API is running on a VPS and should respond within 2–4 seconds per image depending on size. Drop any JPEG, PNG, or TIFF image into the upload panel. Forged images from [`samples/forged/`](./samples/forged/) are a good starting point.
+The backend API runs on a VPS and responds within 2–4 seconds per image. Drop any JPEG, PNG, or TIFF into the upload panel. The [`samples/forged/`](./samples/forged/) images are a good starting point — those are real CASIA forgeries from the test set.
 
 ---
 
-## Project layout
+## 📁 Project layout
 
 ```
 .
 ├── backend/
-│   ├── app.py                  # FastAPI application
-│   ├── config.py               # Training hyperparameters
+│   ├── app.py                  # FastAPI application + detect endpoint
+│   ├── config.py               # Hyperparameters, paths
 │   ├── requirements.txt
 │   ├── model/
 │   │   ├── inference.py        # ForgeryDetector class
 │   │   ├── train.py            # Training script
 │   │   ├── dataset.py          # CASIA dataset loader
-│   │   └── weights/            # dcnn_forgery.pt goes here
+│   │   └── weights/            # dcnn_forgery.pt (download separately)
 │   └── utils/
 │       ├── heatmap.py          # SLIC+SIFT → JET colormap
-│       └── gradcam.py          # Grad-CAM implementation
+│       └── gradcam.py          # Grad-CAM hook implementation
 ├── frontend/
 │   ├── src/
 │   │   ├── routes/             # TanStack file-based routes
 │   │   ├── components/         # React UI components
-│   │   └── lib/                # API client, types
-│   ├── static/                 # Pre-built deployment output (served by Vercel)
-│   └── vercel.json
+│   │   └── lib/                # API client, TypeScript types
+│   └── static/                 # Pre-built deployment output (served by Vercel)
 ├── samples/
 │   ├── authentic/              # 5 CASIA authentic samples
 │   └── forged/                 # 5 CASIA forged samples
-├── dataset/                    # gitignored — run dataset_setup.py
+├── dataset/                    # gitignored — run dataset_setup.py to populate
 └── paper/
     └── Passive image.pdf
 ```
 
 ---
 
-## Limitations
+## ⚠️ Limitations
 
 This model was trained only on CASIA v1.0, which is relatively small and older. It will likely underperform on:
-- AI-generated images (DALL-E, Stable Diffusion outputs)
-- Professionally retouched photos with content-aware fill
+- AI-generated images (DALL-E, Stable Diffusion, Midjourney outputs)
+- Professionally retouched photos with content-aware fill or inpainting
 - Images with heavy JPEG compression below quality 50
 
-The SIFT-based copy-move detector also struggles when forged regions are scaled by more than ~30% or rotated by more than ~45°. Grad-CAM helps here as a fallback, but it's a saliency map, not a precise mask.
+The SIFT-based copy-move detector also struggles when forged regions are scaled by more than ~30% or rotated beyond ~45°. Grad-CAM helps as a fallback, but it's a saliency map, not a precise forgery mask.
+
+---
+
+## 🤝 Collaborators
+
+<div align="center">
+
+| | Name | Role |
+|:---:|---|---|
+| <img src="https://github.com/Sw4pn33.png" width="48" style="border-radius:50%"/> | **Swopna Sarit Barik** · [@Sw4pn33](https://github.com/Sw4pn33) | Lead Developer |
+| <img src="https://github.com/r4hul-s3thi.png" width="48" style="border-radius:50%"/> | **Rahul Sethi** · [@r4hul-s3thi](https://github.com/r4hul-s3thi) | Researcher |
+| <img src="https://github.com/akifalik.png" width="48" style="border-radius:50%"/> | **Akif Ali Khan** · [@akifalik](https://github.com/akifalik) | Researcher |
+
+</div>
 
 ---
 
@@ -245,6 +269,6 @@ The SIFT-based copy-move detector also struggles when forged regions are scaled 
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=24&height=100&section=footer&animation=fadeIn" width="100%"/>
 
-*College Major Project — Paper 2 | Image Forensics*
+*College Major Project — Image Forensics*
 
 </div>
