@@ -1,13 +1,10 @@
 dataset/
-backend/model/weights/
 __pycache__/
 *.pyc
 *.pyo
 .env
 _downloads/
 _kaggle_tmp/
-*.pt
-*.pth
 node_modules/
 frontend/dist/
 .DS_Store
