@@ -1,4 +1,4 @@
-import { writeFile } from 'fs/promises'
+import { writeFile, mkdir } from 'fs/promises'
 import { pathToFileURL, fileURLToPath } from 'url'
 import { join, dirname } from 'path'
 
@@ -32,5 +32,6 @@ try {
 </html>`
 }
 
+await mkdir(join(root, 'dist', 'client'), { recursive: true })
 await writeFile(join(root, 'dist', 'client', 'index.html'), html, 'utf-8')
 console.log('dist/client/index.html created')
