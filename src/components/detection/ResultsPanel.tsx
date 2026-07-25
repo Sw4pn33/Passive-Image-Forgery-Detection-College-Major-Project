@@ -1,10 +1,12 @@
-import { ShieldCheck, AlertTriangle, Loader2, Copy, FileText, FileDown, CheckCircle2, XCircle, Layers } from "lucide-react";
+import { ShieldCheck, AlertTriangle, Loader2, Copy, FileText, FileDown, CheckCircle2, XCircle, Layers, ImageDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import { MetricCell } from "@/components/common/MetricCell";
 import { ScoreBar } from "@/components/common/ScoreBar";
 import { downloadPdf, downloadTxt } from "@/lib/reports";
+import { downloadAnnotatedPng } from "@/lib/annotated";
 import type { StoredResult } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
