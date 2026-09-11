@@ -11,6 +11,8 @@ import {
   WifiOff,
   RefreshCw,
   AlertCircle,
+  Bot,
+  Sigma,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -343,6 +345,18 @@ export function UploadPanel({ onLoadingChange, onError }: Props) {
             icon={Map}
             title="Heatmap Output"
             desc="JET-coloured overlay on detected regions"
+          />
+          <PipelineStep
+            n={5}
+            icon={Sigma}
+            title="Error Level Analysis"
+            desc="JPEG re-compression diff — reveals tampered blocks"
+          />
+          <PipelineStep
+            n={6}
+            icon={Bot}
+            title="AI Generation Detection"
+            desc="EXIF + frequency domain + PRNU noise analysis"
           />
         </ol>
       </div>

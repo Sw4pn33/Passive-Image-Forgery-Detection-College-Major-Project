@@ -12,6 +12,8 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  Bot,
+  Camera,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -220,7 +222,9 @@ function ResultView({ item }: { item: StoredResult }) {
   const r = item.result;
   const m = r.forensic_meta;
   const forged = r.verdict === "FORGED";
-  const [heatmapMode, setHeatmapMode] = useState<"slic" | "gradcam">("slic");
+  const [heatmapMode, setHeatmapMode] = useState<"slic" | "gradcam" | "ela">("gradcam");
+
+  const slicEmpty = m.sift_matches === 0 && m.outlier_segments === 0;
 
   const copySummary = async () => {
     const type = r.forgery_type.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -234,7 +238,10 @@ function ResultView({ item }: { item: StoredResult }) {
     }
   };
 
-  const activeHeatmap = heatmapMode === "gradcam" ? r.gradcam_jpeg : r.heatmap;
+  const activeHeatmap =
+    heatmapMode === "gradcam" ? r.gradcam_jpeg
+    : heatmapMode === "ela"   ? (r.ela_jpeg ?? r.gradcam_jpeg)
+    : r.heatmap;
 
   return (
     <div className="animate-result space-y-4">
@@ -328,12 +335,35 @@ function ResultView({ item }: { item: StoredResult }) {
             >
               Grad-CAM
             </button>
+            {r.ela_jpeg && (
+              <button
+                onClick={() => setHeatmapMode("ela")}
+                className={cn(
+                  "px-3 py-1 transition-colors border-l border-border/70",
+                  heatmapMode === "ela"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                ELA
+              </button>
+            )}
           </div>
         </div>
+        {heatmapMode === "slic" && slicEmpty && (
+          <p className="mb-1.5 text-[10.5px] text-muted-foreground/70 italic">
+            SLIC/SIFT found no suspicious regions — backend returned Grad-CAM as fallback.
+          </p>
+        )}
+        {heatmapMode === "ela" && (
+          <p className="mb-1.5 text-[10.5px] text-muted-foreground/70 italic">
+            ELA — bright patches indicate inconsistent JPEG compression. Tampered / AI-generated regions appear brighter.
+          </p>
+        )}
         <CompareSlider
           original={item.originalDataUrl}
           heatmap={activeHeatmap}
-          label={heatmapMode === "gradcam" ? "Grad-CAM" : "SLIC+SIFT"}
+          label={heatmapMode === "gradcam" ? "Grad-CAM" : heatmapMode === "ela" ? "ELA Map" : "SLIC+SIFT"}
         />
         <div className="mt-1.5 flex items-center justify-center gap-3 text-[10px] text-muted-foreground">
           <span className="flex items-center gap-1">
@@ -346,6 +376,8 @@ function ResultView({ item }: { item: StoredResult }) {
           <span className="text-muted-foreground/50 ml-2">drag divider to compare</span>
         </div>
       </div>
+
+      <AiDetectionCard ai={r.ai_detection} elaUniformity={r.ela_uniformity} />
 
       {forged && (
         <div className="rounded-2xl border border-border/70 bg-surface/50 p-4">
@@ -400,6 +432,86 @@ function ResultView({ item }: { item: StoredResult }) {
           </table>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SignalBar({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div className="space-y-0.5">
+      <div className="flex justify-between text-[10px] text-muted-foreground">
+        <span>{label}</span>
+        <span className="mono">{value.toFixed(0)}%</span>
+      </div>
+      <div className="h-1.5 rounded-full bg-border/50 overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${value}%`, backgroundColor: color }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function AiDetectionCard({ ai, elaUniformity }: { ai: import("@/lib/types").AiDetection | undefined; elaUniformity: number | undefined }) {
+  if (!ai) return null;
+  const isAi = ai.is_ai_generated;
+  const uncertain = ai.label === "Uncertain";
+
+  const borderColor = uncertain
+    ? "border-yellow-500/40"
+    : isAi
+    ? "border-violet-500/40"
+    : "border-good/40";
+  const bgColor = uncertain
+    ? "bg-yellow-500/[0.05]"
+    : isAi
+    ? "bg-violet-500/[0.06]"
+    : "bg-good/[0.06]";
+  const textColor = uncertain
+    ? "text-yellow-500"
+    : isAi
+    ? "text-violet-400"
+    : "text-good";
+
+  const Icon = uncertain ? ShieldCheck : isAi ? Bot : Camera;
+
+  return (
+    <div className={cn("rounded-2xl border p-4", borderColor, bgColor)}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <div className={cn("grid size-8 place-items-center rounded-lg border", borderColor, bgColor)}>
+            <Icon className={cn("size-4", textColor)} />
+          </div>
+          <div>
+            <div className="text-[12.5px] font-semibold text-foreground">AI Generation Analysis</div>
+            <div className={cn("text-[10.5px] mono uppercase tracking-widest mt-0.5", textColor)}>
+              {ai.label}
+            </div>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className={cn("text-xl font-bold mono", textColor)}>{ai.confidence.toFixed(0)}%</div>
+          <div className="text-[9px] uppercase tracking-widest text-muted-foreground">AI likelihood</div>
+        </div>
+      </div>
+
+      <Separator className="my-3 bg-border/60" />
+
+      <div className="space-y-2">
+        <SignalBar label="EXIF Metadata" value={ai.signals.exif} color={isAi ? "#a855f7" : "#10b981"} />
+        <SignalBar label="Frequency Domain" value={ai.signals.frequency} color={isAi ? "#a855f7" : "#10b981"} />
+        <SignalBar label="Noise Pattern (PRNU)" value={ai.signals.noise} color={isAi ? "#a855f7" : "#10b981"} />
+        <SignalBar label="ELA Uniformity" value={ai.signals.ela} color={isAi ? "#a855f7" : "#10b981"} />
+      </div>
+
+      <p className="mt-3 text-[10.5px] text-muted-foreground leading-snug">
+        {isAi
+          ? "Multi-signal analysis indicates this image was likely generated by an AI model (Stable Diffusion, DALL·E, Midjourney, or similar). Authentic camera photos exhibit distinct EXIF metadata, natural 1/f² frequency spectrum, and non-Gaussian sensor noise."
+          : uncertain
+          ? "Signals are inconclusive. The image may be a screenshot, a heavily compressed photo, or lightly AI-enhanced. Manual review recommended."
+          : "Multi-signal analysis indicates a real camera photograph. Natural 1/f² frequency spectrum, PRNU sensor noise, and camera EXIF metadata are consistent with authentic capture."}
+      </p>
     </div>
   );
 }
