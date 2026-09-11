@@ -291,6 +291,6 @@ The SIFT copy-move detector also breaks when regions are scaled beyond ~30% or r
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=24&height=120&section=footer&animation=fadeIn" width="100%"/>
 
-*College Major Project — Image Forensics*
+*Major Project — Image Forensics*
 
 </div>
