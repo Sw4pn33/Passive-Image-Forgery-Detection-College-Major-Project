@@ -58,6 +58,7 @@ Here's what the existing literature leaves on the table:
 | **Copy-move vs splicing** | One or the other | Unified pipeline handles both attack types |
 | **Explainability** | Black box | Grad-CAM activation maps overlaid on input |
 | **Compressed images** | Fail on JPEG artifacts | EfficientNetB0 features are compression-robust |
+| **AI-generated content** | Not addressed | Multi-signal AI image detector (EXIF + frequency + PRNU + ViT model) |
 | **End-to-end deployment** | Lab code, no interface | Full REST API + interactive web frontend |
 
 Classical SIFT-based copy-move detectors work well when forged regions aren't heavily transformed, but break on post-processing. Pure CNNs generalize better but can't localize. This pipeline runs both and combines their outputs.
@@ -73,27 +74,47 @@ Input Image
     │         │
     │         └──► Grad-CAM ──► Activation heatmap  (where the model looks)
     │
-    └──► SLIC superpixels ──► SIFT keypoint extraction
-              │
-              └──► FLANN matcher + RANSAC ──► Copy-move region mask
-                        │
-                        └──► JET colormap heatmap  (suspect regions)
+    ├──► SLIC superpixels ──► SIFT keypoint extraction
+    │             │
+    │             └──► Brute-force L2 matcher ──► Copy-move region mask
+    │                           │
+    │                           └──► JET colormap heatmap  (suspect regions)
+    │
+    ├──► ELA (Error Level Analysis) ──► JPEG re-compression diff map
+    │
+    └──► AI Generation Detector
+              ├── ViT model (umm-maybe/AI-image-detector, 55% weight)
+              ├── EXIF metadata analysis  (15%)
+              ├── Frequency domain — 1/f² spectrum check  (15%)
+              ├── PRNU noise residual — kurtosis  (10%)
+              └── ELA uniformity score  (5%)
 
-FastAPI /api/detect  →  JSON: verdict + confidence + heatmap + gradcam
-React frontend  →  drag-drop upload, comparison slider, heatmap toggle
+FastAPI /api/detect  →  JSON: verdict + confidence + heatmap + gradcam + ai_detection + ela_uniformity
+React frontend  →  drag-drop upload, comparison slider, Grad-CAM / SLIC / ELA tabs, AI likelihood card
 ```
 
 ---
 
 <h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Card%20File%20Box.png" width="30" alt="dataset"/> Dataset</h2>
 
-**CASIA v1.0** — 921 authentic + 921 forged images (copy-move and splicing), JPEG, ~384×256 average resolution.
+Training uses a **combined dataset of three sources** totalling 15,000+ images:
+
+| Dataset | Content | Size |
+|---|---|---|
+| **CASIA v1.0** | Copy-move + splicing, JPEG | 921 authentic + 921 forged |
+| **CASIA v2.0** | High-quality splicing, multiple formats | ~5,100 authentic + tampered pairs |
+| **CG-1050** | Computer-generated forgeries | ~7,000 training + 630 validation |
+
+All three datasets are combined using PyTorch `ConcatDataset` during training. Validation is run on the CG-1050 validation split.
 
 ```
-dataset/
-├── train/    authentic/ (720)    forged/ (720)
-├── val/      authentic/ (100)    forged/ (100)
-└── test/     authentic/ (100)    forged/ (100)
+Training (ConcatDataset):
+  CASIA v1   ──┐
+  CASIA v2   ──┼──► ~15,000+ images total
+  CG-1050    ──┘
+
+Validation:
+  CG-1050 validation split (authentic + tampered)
 ```
 
 Quick-start samples in [`samples/`](./samples/) — 5 authentic + 5 forged from the CASIA test set, ready to drop into the live demo.
@@ -102,10 +123,13 @@ Quick-start samples in [`samples/`](./samples/) — 5 authentic + 5 forged from 
 
 <h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Hammer%20and%20Wrench.png" width="30" alt="built"/> What we built</h2>
 
-- **Hybrid detector** — EfficientNetB0 fine-tuned on CASIA, plus SLIC+SIFT for spatial localization of copy-move regions
+- **Combined dataset training** — EfficientNetB0 fine-tuned on CASIA v1 + CASIA v2 + CG-1050 using `ConcatDataset`, trained on Kaggle GPU T4 for 40 epochs with AdamW + CosineAnnealingLR
+- **Three-tier model loading** — inference.py tries XONetPretrained → XONet → PlainEfficientNetB0 as fallbacks, making the backend compatible with models trained in different environments
+- **AI Generation Detector** — multi-signal pipeline: a fine-tuned ViT (`umm-maybe/AI-image-detector`, HuggingFace) as primary signal (55% weight) combined with EXIF metadata analysis, frequency domain 1/f² check, PRNU noise kurtosis, and ELA uniformity — correctly flags ChatGPT, DALL-E, Stable Diffusion, Midjourney outputs
+- **Error Level Analysis (ELA)** — JPEG re-compression difference map reveals tampered blocks by exposing inconsistent compression artifacts
 - **Grad-CAM fallback** — when SLIC/SIFT finds no keypoints (splicing attacks), Grad-CAM activations are shown so there's always a spatial explanation
-- **Interactive web tool** — drag-and-drop upload, confidence bar, forgery type label, before/after comparison slider, heatmap tab switching
-- **REST API** — `/api/detect` returns verdict + confidence + base64 heatmap + original; `/api/training-history` serves live training curves
+- **Interactive web tool** — drag-and-drop upload, confidence gauge, before/after comparison slider, Grad-CAM / SLIC / ELA tab switching, AI likelihood breakdown card
+- **REST API** — `/api/detect` returns verdict + confidence + base64 heatmap + Grad-CAM + ELA map + AI detection signals; `/api/training-history` serves live training curves
 
 ---
 
@@ -113,11 +137,11 @@ Quick-start samples in [`samples/`](./samples/) — 5 authentic + 5 forged from 
 
 <div align="center">
 
-[![Val Accuracy](https://img.shields.io/badge/Epoch%201%20Val%20Accuracy-~80%25-7c3aed?style=for-the-badge)]()
+[![Val Accuracy](https://img.shields.io/badge/Best%20Val%20Accuracy-96.41%25-7c3aed?style=for-the-badge)]()
 &nbsp;
-[![Optimizer](https://img.shields.io/badge/Optimizer-Adam%20lr%3D1e--4-009688?style=for-the-badge)]()
+[![Optimizer](https://img.shields.io/badge/Optimizer-AdamW%20%2B%20CosineAnnealingLR-009688?style=for-the-badge)]()
 &nbsp;
-[![Epochs](https://img.shields.io/badge/Epochs%20Configured-50-EE4C2C?style=for-the-badge)]()
+[![Epochs](https://img.shields.io/badge/Epochs-40-EE4C2C?style=for-the-badge)]()
 
 </div>
 
@@ -125,13 +149,25 @@ Quick-start samples in [`samples/`](./samples/) — 5 authentic + 5 forged from 
 
 | Metric | Value |
 |---|---|
-| Validation accuracy (Epoch 1) | ~80% |
+| Best validation accuracy | 96.41% (epoch 38) |
+| Training images | ~15,000+ (CASIA v1 + v2 + CG-1050) |
 | Input resolution | 256 × 256 |
 | Batch size | 32 |
+| Learning rate | 1e-4 (AdamW) |
+| LR schedule | CosineAnnealingLR |
 | Backbone | EfficientNetB0 (ImageNet pretrained) |
 | Loss | CrossEntropyLoss |
+| Training hardware | Kaggle GPU T4 × 2 |
 
-Training ran on Kaggle GPU T4. The model checkpoint (`dcnn_forgery.pt`) isn't in this repo due to file size — download it from the Kaggle notebook's Output tab and place at `backend/model/weights/dcnn_forgery.pt`.
+**Model comparison:**
+
+| Model | Val Accuracy | Notes |
+|---|---|---|
+| EfficientNetB0 + SLIC + SIFT (ours) | **96.41%** | Combined dataset, 40 epochs |
+| AlexNet baseline (Li et al.) | ~78% | CASIA only |
+| Single-modal CNN | ~83% | No localization |
+
+The model checkpoint (`dcnn_forgery.pt`) isn't in this repo due to file size — download it from the Kaggle notebook's Output tab and place at `backend/model/weights/dcnn_forgery.pt`.
 
 ---
 
@@ -146,12 +182,14 @@ Training ran on Kaggle GPU T4. The model checkpoint (`dcnn_forgery.pt`) isn't in
 | Layer | Technology |
 |---|---|
 | Backbone | EfficientNetB0 (torchvision pretrained) |
-| Localization | SIFT + FLANN + RANSAC (OpenCV), SLIC (scikit-image) |
-| Explainability | Grad-CAM (manual hook on final conv layer) |
+| Localization | SIFT + Brute-force L2 matcher (OpenCV), SLIC (scikit-image) |
+| Explainability | Grad-CAM (hook on EfficientNetB0 features[-1]) |
+| AI Detection | HuggingFace `umm-maybe/AI-image-detector` (ViT) + EXIF + FFT + PRNU |
+| ELA | JPEG re-compression diff (Pillow + NumPy) |
 | API | FastAPI 0.111, uvicorn, python-multipart |
 | Frontend | React 19, TanStack Start, TypeScript, Tailwind CSS v4 |
 | Charts | Recharts (training history page) |
-| Deployment | Vercel (frontend), VPS (backend via PM2) |
+| Deployment | Vercel (frontend static), VPS via PM2 (backend) |
 
 ---
 
@@ -168,10 +206,13 @@ source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 pip install fastapi==0.111.0 uvicorn[standard]==0.30.1 python-multipart==0.0.9 \
             pillow==10.3.0 numpy==1.26.4 opencv-python==4.10.0.82 \
-            scikit-image==0.23.2 scikit-learn==1.5.0 scipy==1.13.1
+            scikit-image==0.23.2 scikit-learn==1.5.0 scipy==1.13.1 \
+            transformers
 
 uvicorn app:app --host 0.0.0.0 --port 8000
 ```
+
+The first request will download the HuggingFace AI detection model (~330 MB, cached after that).
 
 ```bash
 curl http://localhost:8000/health
@@ -187,16 +228,24 @@ npm run dev
 # http://localhost:3000  →  proxied to backend automatically
 ```
 
-### Train from scratch
+### Train from scratch (Kaggle)
 
-```bash
-cd backend
-python model/train.py
-# checkpoint → backend/model/weights/dcnn_forgery.pt
-# log        → backend/model/weights/training_log.csv
+```python
+# Dataset paths on Kaggle:
+CASIA1_AUTH  = "/kaggle/input/datasets/sophatvathana/casia-dataset/CASIA1/Au"
+CASIA1_FORGED = "/kaggle/input/datasets/sophatvathana/casia-dataset/CASIA1/Sp"
+CASIA2_AUTH  = "/kaggle/input/datasets/sophatvathana/casia-dataset/CASIA2/Au"
+CASIA2_FORGED = "/kaggle/input/datasets/sophatvathana/casia-dataset/CASIA2/Tp"
+CG_TRAIN_AUTH   = "/kaggle/input/datasets/saurabhshahane/cg1050/TRAINING_CG-1050/TRAINING/ORIGINAL"
+CG_TRAIN_FORGED = "/kaggle/input/datasets/saurabhshahane/cg1050/TRAINING_CG-1050/TRAINING/TAMPERED"
+
+# ConcatDataset combines all three
+train_ds = ConcatDataset([FlatDS(CG_TRAIN_AUTH, CG_TRAIN_FORGED, tf_tr),
+                          FlatDS(CASIA1_AUTH,   CASIA1_FORGED,   tf_tr),
+                          FlatDS(CASIA2_AUTH,   CASIA2_FORGED,   tf_tr)])
 ```
 
-Use Kaggle or any CUDA environment — CPU training will take hours per epoch.
+Download `dcnn_forgery.pt` from the notebook Output tab → place at `backend/model/weights/dcnn_forgery.pt`.
 
 ---
 
@@ -217,39 +266,41 @@ The backend processes each image in 2–4 seconds. Grab an image from [`samples/
 ```
 .
 ├── backend/
-│   ├── app.py                 # FastAPI app + /api/detect endpoint
-│   ├── config.py              # Hyperparameters, paths
+│   ├── app.py                 FastAPI app — /api/detect endpoint, wires all signals
+│   ├── config.py              Hyperparameters, paths
 │   ├── model/
-│   │   ├── inference.py       # ForgeryDetector class
-│   │   ├── train.py           # Training loop
-│   │   ├── dataset.py         # CASIA dataloader
-│   │   └── weights/           # Place dcnn_forgery.pt here
+│   │   ├── inference.py       ForgeryDetector — tries XONetPretrained → XONet → PlainEfficientNetB0
+│   │   ├── train.py           Training loop (ConcatDataset, AdamW, CosineAnnealingLR)
+│   │   ├── dataset.py         FlatDS dataloader — reads ORIGINAL/TAMPERED folder pairs
+│   │   └── weights/           Place dcnn_forgery.pt here
 │   └── utils/
-│       ├── heatmap.py         # SLIC+SIFT → JET heatmap
-│       └── gradcam.py         # Grad-CAM hook
+│       ├── ai_detector.py     Multi-signal AI image detector (HuggingFace ViT + EXIF + FFT + PRNU)
+│       ├── ela.py             Error Level Analysis — JPEG re-compression diff
+│       ├── heatmap.py         SLIC superpixels + SIFT → JET colormap heatmap
+│       ├── gradcam.py         Grad-CAM hook on EfficientNetB0 features[-1]
+│       └── localize.py        Copy-move region localization helper
 ├── frontend/
 │   ├── src/
-│   │   ├── routes/            # File-based routes (TanStack)
-│   │   ├── components/        # React components
-│   │   └── lib/               # API client, types
-│   └── static/                # Pre-built output served by Vercel
+│   │   ├── routes/            File-based routes (TanStack)
+│   │   ├── components/        React components (detection, training, layout)
+│   │   └── lib/               API client, types
+│   └── static/                Pre-built output served by Vercel
 ├── samples/
-│   ├── authentic/             # 5 CASIA authentic test images
-│   └── forged/                # 5 CASIA forged test images
-└── paper/
-    └── Passive image.pdf
+│   ├── authentic/             5 CASIA authentic test images
+│   └── forged/                5 CASIA forged test images
+├── paper/
+│   └── Passive image.pdf      Research paper
+└── kaggle_train.py            Standalone Kaggle training script
 ```
 
 ---
 
 <h2><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Symbols/Warning.png" width="30" alt="limits"/> Limitations</h2>
 
-CASIA v1.0 is small and dated by modern standards. The model will struggle with:
-- AI-generated images (Stable Diffusion, Midjourney, DALL-E)
-- Content-aware fill or inpainting from Photoshop
-- Heavy JPEG compression below quality ~50
-
-The SIFT copy-move detector also breaks when regions are scaled beyond ~30% or rotated past ~45°. Grad-CAM provides a fallback explanation but it's a saliency map, not a pixel-precise forgery mask.
+- The SIFT copy-move detector breaks when forged regions are scaled beyond ~30% or rotated past ~45°
+- Grad-CAM is a saliency map, not a pixel-precise forgery mask — it shows where the model looks, not exactly what is forged
+- The AI generation detector's heuristic signals (frequency, PRNU) are tuned for photographic content — very complex synthetic graphics may require the ViT model to override them
+- Heavy JPEG compression below quality ~50 degrades both ELA and SIFT matching
 
 ---
 
