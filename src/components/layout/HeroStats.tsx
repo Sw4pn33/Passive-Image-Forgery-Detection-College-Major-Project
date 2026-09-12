@@ -1,15 +1,15 @@
 const STATS = [
   {
     label: "Training Images",
-    value: "~1,460",
-    sub: "CG-1050 dataset",
+    value: "~15,000+",
+    sub: "CASIA v1 + CASIA v2 + CG-1050",
     valueClass: "text-primary",
     bar: "bg-primary",
   },
   {
     label: "Best Val Accuracy",
-    value: "78.50%",
-    sub: "Epoch 40 of 40 trained",
+    value: "77.23%",
+    sub: "Epoch 26 best · 40 epochs trained",
     valueClass: "text-teal",
     bar: "bg-teal",
   },
