@@ -8,8 +8,8 @@ const STATS = [
   },
   {
     label: "Best Val Accuracy",
-    value: "77.23%",
-    sub: "Epoch 26 best · 40 epochs trained",
+    value: "96.41%",
+    sub: "Epoch 38 best · 40 epochs trained",
     valueClass: "text-teal",
     bar: "bg-teal",
   },
