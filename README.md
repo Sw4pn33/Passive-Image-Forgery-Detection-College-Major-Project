@@ -18,15 +18,15 @@
 
 <br/>
 
-[![Dataset](https://img.shields.io/badge/Dataset-CASIA%20v1.0-ff6b6b?style=for-the-badge)](http://forensics.idealtest.org/)
+[![Dataset](https://img.shields.io/badge/Dataset-CASIA%20v1%20%2B%20v2%20%2B%20CG--1050-ff6b6b?style=for-the-badge)](http://forensics.idealtest.org/)
 [![Model](https://img.shields.io/badge/Backbone-EfficientNetB0-4ecdc4?style=for-the-badge)]()
 [![Training](https://img.shields.io/badge/GPU-Kaggle%20T4-20BEFF?style=for-the-badge&logo=kaggle&logoColor=white)](https://kaggle.com)
 
 <br/><br/>
 
-[![Val Accuracy](https://img.shields.io/badge/Val%20Accuracy-~80%25-7c3aed?style=flat-square)]()
+[![Val Accuracy](https://img.shields.io/badge/Val%20Accuracy-96.41%25-7c3aed?style=flat-square)]()
 &nbsp;·&nbsp;
-[![Images](https://img.shields.io/badge/Training%20Images-1842-009688?style=flat-square)]()
+[![Images](https://img.shields.io/badge/Training%20Images-15%2C000%2B-009688?style=flat-square)]()
 &nbsp;·&nbsp;
 [![Classes](https://img.shields.io/badge/Classes-Authentic%20%7C%20Forged-EE4C2C?style=flat-square)]()
 &nbsp;·&nbsp;

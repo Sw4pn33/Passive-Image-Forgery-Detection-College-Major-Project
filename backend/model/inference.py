@@ -46,6 +46,22 @@ class ForgeryDetector:
             except Exception:
                 continue
 
+        # Fallback: plain EfficientNetB0 (Kaggle-trained format)
+        try:
+            from torchvision.models import efficientnet_b0
+            import torch.nn as nn
+            m = efficientnet_b0(weights=None)
+            m.classifier[1] = nn.Linear(m.classifier[1].in_features, 2)
+            state = torch.load(MODEL_PATH, map_location=DEVICE, weights_only=True)
+            m.load_state_dict(state)
+            m.to(DEVICE).eval()
+            self.model = m
+            self.model_loaded = True
+            print("[ForgeryDetector] Loaded PlainEfficientNetB0 from", MODEL_PATH)
+            return
+        except Exception as e:
+            print("[ForgeryDetector] PlainEfficientNetB0 failed:", e)
+
         print("[ForgeryDetector] Weight load failed. Using untrained model.")
         self.model = XONetPretrained().to(DEVICE).eval()
 

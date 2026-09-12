@@ -10,10 +10,12 @@ from PIL import Image
 from model.inference import ForgeryDetector
 from utils.heatmap import generate_heatmap
 from utils.gradcam import generate_gradcam
+from utils.ela import compute_ela, ela_uniformity_score
+from utils.ai_detector import detect_ai_image
 from config import MODEL_PATH, INPUT_SIZE
 import torchvision.transforms as T
 
-app = FastAPI(title="Image Forgery Detection API", version="2.0.0")
+app = FastAPI(title="Image Forgery Detection API", version="3.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -51,7 +53,7 @@ async def detect_forgery(file: UploadFile = File(...)):
     result = detector.predict(pil_image)
     process_ms = round((time.time() - t0) * 1000)
 
-    # Grad-CAM first so it can be used as fallback
+    # Grad-CAM
     try:
         class_idx = 1 if result["verdict"] == "FORGED" else 0
         gradcam_b64 = generate_gradcam(
@@ -60,7 +62,7 @@ async def detect_forgery(file: UploadFile = File(...)):
     except Exception:
         gradcam_b64 = None
 
-    # SLIC+SIFT heatmap — use Grad-CAM when no regions detected
+    # SLIC+SIFT heatmap
     has_regions = (
         result.get("forged_mask") is not None
         and result["forged_mask"].max() > 0
@@ -72,20 +74,45 @@ async def detect_forgery(file: UploadFile = File(...)):
     if gradcam_b64 is None:
         gradcam_b64 = heatmap_b64
 
+    # ELA — open from original bytes to preserve format metadata
+    try:
+        original_pil = Image.open(io.BytesIO(contents))
+        ela_b64  = compute_ela(original_pil)
+        ela_unif = ela_uniformity_score(original_pil)
+    except Exception:
+        ela_b64  = None
+        ela_unif = 50.0
+
+    # AI image detection — use original PIL (with EXIF intact)
+    try:
+        original_pil_rgb = Image.open(io.BytesIO(contents))
+        ai_result = detect_ai_image(original_pil_rgb)
+    except Exception:
+        ai_result = {
+            "is_ai_generated": False,
+            "confidence": 50.0,
+            "label": "Uncertain",
+            "signals": {"exif": 50.0, "frequency": 50.0, "noise": 50.0, "ela": 50.0},
+        }
+
+    # Original image for display
     orig_buf = io.BytesIO()
     pil_image.save(orig_buf, format="JPEG", quality=92)
     original_b64 = base64.b64encode(orig_buf.getvalue()).decode("utf-8")
 
     return {
-        "verdict":        result["verdict"],
-        "confidence":     result["confidence"],
-        "forgery_type":   result["forgery_type"],
-        "regions_found":  result["regions_found"],
-        "heatmap":        heatmap_b64,
-        "gradcam_jpeg":   gradcam_b64,
-        "original_jpeg":  original_b64,
-        "process_time_ms": process_ms,
-        "forensic_meta":  result.get("forensic_meta", {}),
+        "verdict":          result["verdict"],
+        "confidence":       result["confidence"],
+        "forgery_type":     result["forgery_type"],
+        "regions_found":    result["regions_found"],
+        "heatmap":          heatmap_b64,
+        "gradcam_jpeg":     gradcam_b64,
+        "ela_jpeg":         ela_b64,
+        "ela_uniformity":   ela_unif,
+        "original_jpeg":    original_b64,
+        "process_time_ms":  process_ms,
+        "forensic_meta":    result.get("forensic_meta", {}),
+        "ai_detection":     ai_result,
     }
 
 
