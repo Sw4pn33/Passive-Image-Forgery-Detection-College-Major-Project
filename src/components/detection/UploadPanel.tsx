@@ -6,13 +6,15 @@ import {
   ImageIcon,
   Layers,
   Fingerprint,
-  Map,
   Cpu,
   WifiOff,
   RefreshCw,
   AlertCircle,
   Bot,
   Sigma,
+  GitMerge,
+  Scan,
+  Network,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -324,39 +326,39 @@ export function UploadPanel({ onLoadingChange, onError }: Props) {
         <ol className="mt-3 space-y-2.5">
           <PipelineStep
             n={1}
-            icon={Cpu}
-            title="DCNN Classification"
-            desc="EfficientNetB0 classifies authentic vs forged"
+            icon={Layers}
+            title="4-Stream Input Representation"
+            desc="RGB · SRM residual noise · ELA compression · FFT/DCT frequency domain"
           />
           <PipelineStep
             n={2}
-            icon={Layers}
-            title="SLIC Segmentation"
-            desc="~100 superpixels, colour-illumination stats"
+            icon={Cpu}
+            title="EfficientNetV2-S Feature Extraction"
+            desc="Multi-scale backbone (64→128→256→512), pretrained ImageNet weights"
           />
           <PipelineStep
             n={3}
-            icon={Fingerprint}
-            title="SIFT Keypoint Matching"
-            desc="500 keypoints, brute-force L2 duplicate search"
+            icon={Network}
+            title="ECA Attention + Transformer"
+            desc="Channel+spatial cross-stream fusion; lightweight global context"
           />
           <PipelineStep
             n={4}
-            icon={Map}
-            title="Heatmap Output"
-            desc="JET-coloured overlay on detected regions"
+            icon={Scan}
+            title="Multi-Task Heads"
+            desc="Classification · Forgery type (5-class) · U-Net 256×256 pixel mask"
           />
           <PipelineStep
             n={5}
-            icon={Sigma}
-            title="Error Level Analysis"
-            desc="JPEG re-compression diff — reveals tampered blocks"
+            icon={Fingerprint}
+            title="Grad-CAM + SIFT/RANSAC Verification"
+            desc="Explanation ROI heatmap + keypoint copy-move localization"
           />
           <PipelineStep
             n={6}
             icon={Bot}
-            title="AI Generation Detection"
-            desc="EXIF + frequency domain + PRNU noise analysis"
+            title="AI-Generation Detection"
+            desc="ViT model · EXIF · FFT · DCT · PRNU noise · ELA → MLP/XGBoost fusion"
           />
         </ol>
       </div>

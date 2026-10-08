@@ -53,7 +53,7 @@ export function Header() {
               ForensicVision
             </div>
             <div className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mono">
-              DCNN · SLIC · SIFT
+              ForensicFusion-Net · ECA · U-Net
             </div>
           </div>
         </Link>
