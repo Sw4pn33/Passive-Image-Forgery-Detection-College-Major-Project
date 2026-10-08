@@ -44,7 +44,9 @@ export async function getTrainingHistory(): Promise<TrainingHistory> {
   try {
     const res = await fetch("/api/training-history");
     if (!res.ok) return PHASE3_STATIC;
-    return res.json() as Promise<TrainingHistory>;
+    const data = await res.json() as TrainingHistory;
+    if (!data?.epochs?.length) return PHASE3_STATIC;
+    return data;
   } catch {
     return PHASE3_STATIC;
   }
