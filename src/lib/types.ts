@@ -1,5 +1,6 @@
 export type Verdict = "FORGED" | "AUTHENTIC";
 export type ForgeryType = "copy-move" | "splicing" | "unknown" | "none";
+export type ForgeryType5 = "copy-move" | "splicing" | "object-removal" | "ai-generated" | "none" | "unknown";
 
 export interface ForensicMeta {
   sift_keypoints: number;
@@ -24,19 +25,31 @@ export interface AiDetection {
   signals: AiDetectionSignals;
 }
 
+export interface DomainScores {
+  rgb: number;
+  srm: number;
+  freq: number;
+  ela: number;
+}
+
 export interface DetectResponse {
   verdict: Verdict;
   confidence: number;
   forgery_type: ForgeryType;
   regions_found: number;
-  heatmap: string;          // base64 JPEG — pure JET colormap (SLIC+SIFT mask)
-  gradcam_jpeg: string;     // base64 JPEG — pure JET colormap (Grad-CAM from EfficientNetB0)
-  ela_jpeg: string | null;  // base64 JPEG — Error Level Analysis heatmap
-  ela_uniformity: number;   // 0-100: higher = more uniform ELA = more likely AI
-  original_jpeg: string;    // base64 JPEG of original (display-safe for any input format)
-  process_time_ms: number;  // inference + localization time in ms
+  heatmap: string;          // base64 JPEG — JET colormap (SLIC+SIFT or pixel mask)
+  gradcam_jpeg: string;     // base64 JPEG — Grad-CAM
+  ela_jpeg: string | null;  // base64 JPEG — ELA heatmap
+  ela_uniformity: number;   // 0-100: higher = more uniform = likely AI
+  original_jpeg: string;    // base64 JPEG of original
+  process_time_ms: number;
   forensic_meta: ForensicMeta;
   ai_detection: AiDetection;
+  // Phase 3 fields (optional for backward compat with Phase 2 backend)
+  pixel_mask_256?: string | null;   // base64 JPEG 256×256 U-Net segmentation mask
+  domain_scores?: DomainScores | null;
+  evidence_score?: number | null;   // 0-100 evidence fusion confidence
+  forgery_type_5?: ForgeryType5 | null;
 }
 
 export interface TrainingEpoch {
@@ -54,6 +67,8 @@ export interface TrainingHistory {
 export interface HealthStatus {
   status: string;
   model_loaded: boolean;
+  model_phase?: string;
+  gpu?: boolean;
 }
 
 export interface StoredResult {

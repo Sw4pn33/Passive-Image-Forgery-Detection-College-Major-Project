@@ -14,6 +14,8 @@ import {
   ChevronRight,
   Bot,
   Camera,
+  Cpu,
+  Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -22,7 +24,7 @@ import { MetricCell } from "@/components/common/MetricCell";
 import { ScoreBar } from "@/components/common/ScoreBar";
 import { downloadPdf, downloadTxt } from "@/lib/reports";
 import { downloadAnnotatedPng } from "@/lib/annotated";
-import type { StoredResult } from "@/lib/types";
+import type { StoredResult, ForgeryType5 } from "@/lib/types";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
@@ -59,8 +61,9 @@ function EmptyState() {
         Awaiting Analysis
       </h3>
       <p className="mt-2 max-w-sm text-[13px] text-muted-foreground leading-relaxed">
-        Upload a suspected image to run the DCNN classifier, SLIC superpixel segmentation, and
-        SIFT keypoint matching. Results and a JET-coloured heatmap will appear here.
+        Upload a suspected image to run the ForensicFusion-Net 4-stream analysis: RGB classifier,
+        SRM residual noise, FFT/DCT frequency domain, and ELA compression artifact detection.
+        A pixel-level forgery mask and Grad-CAM heatmap will appear here.
       </p>
     </div>
   );
@@ -78,7 +81,7 @@ function LoadingState() {
       </div>
       <div className="mt-5 text-[14px] font-medium text-foreground">Analyzing image…</div>
       <div className="mt-1 text-[11.5px] text-muted-foreground mono">
-        DCNN classification · SLIC segmentation · SIFT matching · Grad-CAM
+        RGB · SRM · FFT/DCT · ELA · ECA Attention · Transformer · U-Net mask
       </div>
     </div>
   );
@@ -118,45 +121,26 @@ function ConfidenceGauge({ value, forged }: { value: number; forged: boolean }) 
   return (
     <div className="relative flex items-center justify-center size-24">
       <svg width="96" height="96" viewBox="0 0 96 96" className="rotate-[-90deg]">
-        <circle
-          cx="48" cy="48" r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="6"
-          className="text-border"
-        />
-        <circle
-          cx="48" cy="48" r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth="6"
-          strokeLinecap="round"
-          strokeDasharray={circ}
-          strokeDashoffset={offset}
-          style={{ transition: "stroke-dashoffset 1s ease-out" }}
-        />
+        <circle cx="48" cy="48" r={radius} fill="none" stroke="currentColor"
+          strokeWidth="6" className="text-border" />
+        <circle cx="48" cy="48" r={radius} fill="none" stroke={color}
+          strokeWidth="6" strokeLinecap="round"
+          strokeDasharray={circ} strokeDashoffset={offset}
+          style={{ transition: "stroke-dashoffset 1s ease-out" }} />
       </svg>
       <div className="absolute flex flex-col items-center">
         <span className="text-[17px] font-bold mono leading-none" style={{ color }}>
           {value.toFixed(0)}%
         </span>
-        <span className="text-[9px] uppercase tracking-widest text-muted-foreground mt-0.5">
-          conf
-        </span>
+        <span className="text-[9px] uppercase tracking-widest text-muted-foreground mt-0.5">conf</span>
       </div>
     </div>
   );
 }
 
 function CompareSlider({
-  original,
-  heatmap,
-  label,
-}: {
-  original: string;
-  heatmap: string;
-  label: string;
-}) {
+  original, heatmap, label,
+}: { original: string; heatmap: string; label: string }) {
   const [pos, setPos] = useState(50);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
@@ -180,71 +164,98 @@ function CompareSlider({
       onTouchStart={(e) => updatePos(e.touches[0].clientX)}
       onTouchMove={(e) => { e.preventDefault(); updatePos(e.touches[0].clientX); }}
     >
-      <img
-        src={`data:image/jpeg;base64,${heatmap}`}
-        alt="heatmap"
-        className="w-full h-auto block pointer-events-none"
-        draggable={false}
-      />
-
-      <img
-        src={original}
-        alt="original"
+      <img src={`data:image/jpeg;base64,${heatmap}`} alt="heatmap"
+        className="w-full h-auto block pointer-events-none" draggable={false} />
+      <img src={original} alt="original"
         className="absolute inset-0 w-full h-full pointer-events-none"
-        style={{
-          objectFit: "fill",
-          clipPath: `inset(0 ${(100 - pos).toFixed(1)}% 0 0)`,
-        }}
-        draggable={false}
-      />
-
-      <div
-        className="absolute top-0 bottom-0 w-px bg-white/90 shadow-[0_0_6px_rgba(0,0,0,0.4)]"
-        style={{ left: `${pos}%` }}
-      >
+        style={{ objectFit: "fill", clipPath: `inset(0 ${(100 - pos).toFixed(1)}% 0 0)` }}
+        draggable={false} />
+      <div className="absolute top-0 bottom-0 w-px bg-white/90 shadow-[0_0_6px_rgba(0,0,0,0.4)]"
+        style={{ left: `${pos}%` }}>
         <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-white rounded-full px-2 py-1.5 shadow-lg border border-border/30">
           <ChevronLeft className="size-3 text-foreground/70" />
           <ChevronRight className="size-3 text-foreground/70" />
         </div>
       </div>
+      <div className="absolute bottom-2 left-2 text-[9px] uppercase tracking-widest text-white bg-black/50 px-1.5 py-0.5 rounded">Original</div>
+      <div className="absolute bottom-2 right-2 text-[9px] uppercase tracking-widest text-white bg-black/50 px-1.5 py-0.5 rounded">{label}</div>
+    </div>
+  );
+}
 
-      <div className="absolute bottom-2 left-2 text-[9px] uppercase tracking-widest text-white bg-black/50 px-1.5 py-0.5 rounded">
-        Original
+function ForgeryTypeBadge({ type }: { type: ForgeryType5 | string }) {
+  const MAP: Record<string, { label: string; color: string; bg: string }> = {
+    "copy-move":      { label: "Copy-Move",      color: "text-amber-500",  bg: "bg-amber-500/10 border-amber-500/30" },
+    "splicing":       { label: "Splicing",        color: "text-purple-400", bg: "bg-purple-500/10 border-purple-500/30" },
+    "object-removal": { label: "Object Removal",  color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/30" },
+    "ai-generated":   { label: "AI-Generated",    color: "text-violet-400", bg: "bg-violet-500/10 border-violet-500/30" },
+    "unknown":        { label: "Unknown",          color: "text-muted-foreground", bg: "bg-border/30 border-border/50" },
+    "none":           { label: "Authentic",        color: "text-good",      bg: "bg-good/10 border-good/30" },
+  };
+  const s = MAP[type] ?? MAP["unknown"];
+  return (
+    <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium mono uppercase tracking-widest", s.color, s.bg)}>
+      {s.label}
+    </span>
+  );
+}
+
+function DomainScoresPanel({ scores }: { scores: NonNullable<StoredResult["result"]["domain_scores"]> }) {
+  const streams = [
+    { key: "rgb",  label: "RGB Stream",     color: "#2e7cf6", hint: "EfficientNetV2-S classification confidence" },
+    { key: "srm",  label: "SRM Residual",   color: "#f59e0b", hint: "SRM high-pass filter noise inconsistency" },
+    { key: "freq", label: "FFT / DCT",      color: "#10b981", hint: "Frequency domain manipulation indicator" },
+    { key: "ela",  label: "ELA Uniformity", color: "#a855f7", hint: "Error Level Analysis — compression inconsistency" },
+  ] as const;
+
+  return (
+    <div className="rounded-2xl border border-border/70 bg-surface/50 p-4">
+      <div className="flex items-center gap-2 text-[12.5px] font-semibold text-foreground mb-3">
+        <Activity className="size-4 text-primary" />
+        Domain Evidence Breakdown
       </div>
-      <div className="absolute bottom-2 right-2 text-[9px] uppercase tracking-widest text-white bg-black/50 px-1.5 py-0.5 rounded">
-        {label}
+      <div className="space-y-2.5">
+        {streams.map((s) => (
+          <ScoreBar
+            key={s.key}
+            label={s.label}
+            value={(scores as Record<string, number>)[s.key] ?? 0}
+            color={s.color}
+            hint={s.hint}
+          />
+        ))}
       </div>
     </div>
   );
 }
 
 function ResultView({ item }: { item: StoredResult }) {
-  const r = item.result;
-  const m = r.forensic_meta;
+  const r      = item.result;
+  const m      = r.forensic_meta;
   const forged = r.verdict === "FORGED";
-  const [heatmapMode, setHeatmapMode] = useState<"slic" | "gradcam" | "ela">("gradcam");
 
+  // Prefer Phase 3 5-class type; fall back to Phase 2 type
+  const displayType: string = r.forgery_type_5 ?? r.forgery_type;
+
+  const [heatmapMode, setHeatmapMode] = useState<"mask" | "gradcam" | "ela">("gradcam");
   const slicEmpty = m.sift_matches === 0 && m.outlier_segments === 0;
-
-  const copySummary = async () => {
-    const type = r.forgery_type.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase());
-    const label = forged ? `${type} Forgery` : "Authentic";
-    const text = `ForensicVision · Verdict: ${r.verdict} · Confidence: ${r.confidence.toFixed(1)}% · Type: ${label} · Time: ${r.process_time_ms}ms`;
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success("Summary copied");
-    } catch {
-      toast.error("Clipboard blocked");
-    }
-  };
+  const hasPhase3 = !!(r.pixel_mask_256 || r.domain_scores);
 
   const activeHeatmap =
-    heatmapMode === "gradcam" ? r.gradcam_jpeg
+    heatmapMode === "mask"    ? (r.pixel_mask_256 ?? r.heatmap)
     : heatmapMode === "ela"   ? (r.ela_jpeg ?? r.gradcam_jpeg)
-    : r.heatmap;
+    : r.gradcam_jpeg;
+
+  const copySummary = async () => {
+    const label = forged ? `${displayType} Forgery` : "Authentic";
+    const text  = `ForensicVision · Verdict: ${r.verdict} · Confidence: ${r.confidence.toFixed(1)}% · Type: ${label} · Time: ${r.process_time_ms}ms`;
+    try { await navigator.clipboard.writeText(text); toast.success("Summary copied"); }
+    catch { toast.error("Clipboard blocked"); }
+  };
 
   return (
     <div className="animate-result space-y-4">
+      {/* Header row */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <div className="grid size-8 place-items-center rounded-lg bg-good/15 border border-good/30">
@@ -253,13 +264,15 @@ function ResultView({ item }: { item: StoredResult }) {
           <div>
             <div className="text-[13.5px] font-semibold text-foreground">Analysis Complete</div>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-[10.5px] text-muted-foreground mono truncate max-w-[180px]">
-                {item.filename}
-              </span>
+              <span className="text-[10.5px] text-muted-foreground mono truncate max-w-[180px]">{item.filename}</span>
               {r.process_time_ms > 0 && (
                 <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground/70 mono">
-                  <Clock className="size-2.5" />
-                  {r.process_time_ms}ms
+                  <Clock className="size-2.5" />{r.process_time_ms}ms
+                </span>
+              )}
+              {hasPhase3 && (
+                <span className="text-[9px] mono uppercase tracking-widest text-primary/70 border border-primary/30 rounded px-1 py-0.5">
+                  Phase 3
                 </span>
               )}
             </div>
@@ -269,18 +282,25 @@ function ResultView({ item }: { item: StoredResult }) {
           <Button size="sm" variant="outline" onClick={copySummary} className="border-border/70 h-7 text-[11px]">
             <Copy className="size-3" /> Copy
           </Button>
-          <Button size="sm" variant="outline" onClick={() => { downloadTxt(item); toast.success("TXT downloaded"); }} className="border-border/70 h-7 text-[11px]">
+          <Button size="sm" variant="outline"
+            onClick={() => { downloadTxt(item); toast.success("TXT downloaded"); }}
+            className="border-border/70 h-7 text-[11px]">
             <FileText className="size-3" /> TXT
           </Button>
-          <Button size="sm" variant="outline" onClick={async () => { try { await downloadAnnotatedPng(item, 0.6); toast.success("PNG downloaded"); } catch { toast.error("PNG failed"); } }} className="border-border/70 h-7 text-[11px]">
+          <Button size="sm" variant="outline"
+            onClick={async () => { try { await downloadAnnotatedPng(item, 0.6); toast.success("PNG downloaded"); } catch { toast.error("PNG failed"); }}}
+            className="border-border/70 h-7 text-[11px]">
             <ImageDown className="size-3" /> PNG
           </Button>
-          <Button size="sm" variant="outline" onClick={async () => { await downloadPdf(item); toast.success("PDF downloaded"); }} className="border-border/70 h-7 text-[11px]">
+          <Button size="sm" variant="outline"
+            onClick={async () => { await downloadPdf(item); toast.success("PDF downloaded"); }}
+            className="border-border/70 h-7 text-[11px]">
             <FileDown className="size-3" /> PDF
           </Button>
         </div>
       </div>
 
+      {/* Verdict card */}
       <div className={cn(
         "rounded-2xl border p-4 relative overflow-hidden flex items-center gap-4",
         forged ? "border-destructive/40 bg-destructive/[0.06]" : "border-good/40 bg-good/[0.06]",
@@ -293,66 +313,57 @@ function ResultView({ item }: { item: StoredResult }) {
           <div className={cn("text-2xl font-bold tracking-tight", forged ? "text-destructive" : "text-good")}>
             {r.verdict}
           </div>
-          <div className="text-[11px] text-muted-foreground uppercase tracking-[0.14em] mono mt-0.5">
-            {r.forgery_type === "none" ? "No manipulation" : `${r.forgery_type} forgery`}
+          <div className="mt-1">
+            <ForgeryTypeBadge type={displayType} />
           </div>
-          <div className="mt-2 flex items-center gap-1.5">
-            {forged ? (
-              <AlertTriangle className="size-3.5 text-destructive" />
-            ) : (
-              <CheckCircle2 className="size-3.5 text-good" />
-            )}
-            <span className={cn("text-[11.5px]", forged ? "text-destructive/80" : "text-good/80")}>
-              {forged ? "Manipulation detected" : "No manipulation found"}
-            </span>
-          </div>
+          {r.evidence_score != null && (
+            <div className="mt-1.5 text-[10.5px] text-muted-foreground mono">
+              evidence: <span className="text-foreground">{r.evidence_score.toFixed(1)}%</span>
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Image comparison */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <div className="text-[11.5px] font-medium text-foreground">Image Comparison</div>
           <div className="flex rounded-lg border border-border/70 overflow-hidden text-[10.5px] font-medium">
-            <button
-              onClick={() => setHeatmapMode("slic")}
-              className={cn(
-                "px-3 py-1 transition-colors",
-                heatmapMode === "slic"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              SLIC + SIFT
-            </button>
+            {(r.pixel_mask_256 || r.heatmap) && (
+              <button
+                onClick={() => setHeatmapMode("mask")}
+                className={cn("px-3 py-1 transition-colors",
+                  heatmapMode === "mask" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                )}>
+                {hasPhase3 ? "U-Net Mask" : "SLIC+SIFT"}
+              </button>
+            )}
             <button
               onClick={() => setHeatmapMode("gradcam")}
-              className={cn(
-                "px-3 py-1 transition-colors border-l border-border/70",
-                heatmapMode === "gradcam"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
+              className={cn("px-3 py-1 transition-colors border-l border-border/70",
+                heatmapMode === "gradcam" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              )}>
               Grad-CAM
             </button>
             {r.ela_jpeg && (
               <button
                 onClick={() => setHeatmapMode("ela")}
-                className={cn(
-                  "px-3 py-1 transition-colors border-l border-border/70",
-                  heatmapMode === "ela"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
+                className={cn("px-3 py-1 transition-colors border-l border-border/70",
+                  heatmapMode === "ela" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                )}>
                 ELA
               </button>
             )}
           </div>
         </div>
-        {heatmapMode === "slic" && slicEmpty && (
+        {heatmapMode === "mask" && !hasPhase3 && slicEmpty && (
           <p className="mb-1.5 text-[10.5px] text-muted-foreground/70 italic">
             SLIC/SIFT found no suspicious regions — backend returned Grad-CAM as fallback.
+          </p>
+        )}
+        {heatmapMode === "mask" && hasPhase3 && (
+          <p className="mb-1.5 text-[10.5px] text-muted-foreground/70 italic">
+            U-Net 256×256 pixel segmentation mask — bright regions indicate manipulated pixels.
           </p>
         )}
         {heatmapMode === "ela" && (
@@ -363,23 +374,24 @@ function ResultView({ item }: { item: StoredResult }) {
         <CompareSlider
           original={item.originalDataUrl}
           heatmap={activeHeatmap}
-          label={heatmapMode === "gradcam" ? "Grad-CAM" : heatmapMode === "ela" ? "ELA Map" : "SLIC+SIFT"}
+          label={heatmapMode === "gradcam" ? "Grad-CAM" : heatmapMode === "ela" ? "ELA Map" : hasPhase3 ? "U-Net Mask" : "SLIC+SIFT"}
         />
         <div className="mt-1.5 flex items-center justify-center gap-3 text-[10px] text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <span className="inline-block size-2 rounded-sm bg-blue-500" /> low
-          </span>
+          <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-blue-500" /> low</span>
           <span className="h-px w-8 bg-gradient-to-r from-blue-500 via-yellow-400 to-red-500" />
-          <span className="flex items-center gap-1">
-            <span className="inline-block size-2 rounded-sm bg-red-500" /> high
-          </span>
+          <span className="flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-red-500" /> high</span>
           <span className="text-muted-foreground/50 ml-2">drag divider to compare</span>
         </div>
       </div>
 
+      {/* AI Detection */}
       <AiDetectionCard ai={r.ai_detection} elaUniformity={r.ela_uniformity} />
 
-      {forged && (
+      {/* Domain evidence (Phase 3) */}
+      {r.domain_scores && <DomainScoresPanel scores={r.domain_scores} />}
+
+      {/* Algorithm diagnostics (Phase 2 fallback) */}
+      {forged && !hasPhase3 && (
         <div className="rounded-2xl border border-border/70 bg-surface/50 p-4">
           <div className="flex items-center gap-2 text-[12.5px] font-semibold text-foreground">
             <Layers className="size-4 text-primary" />
@@ -399,8 +411,9 @@ function ResultView({ item }: { item: StoredResult }) {
         </div>
       )}
 
-      <ConclusionRow forged={forged} type={r.forgery_type} />
+      <ConclusionRow forged={forged} type={displayType} />
 
+      {/* Model comparison table */}
       <div className="rounded-2xl border border-border/70 bg-surface/50 overflow-hidden">
         <div className="px-4 pt-3 pb-2 text-[12px] font-semibold text-foreground">Model Comparison</div>
         <div className="overflow-x-auto">
@@ -413,18 +426,23 @@ function ResultView({ item }: { item: StoredResult }) {
               </tr>
             </thead>
             <tbody className="mono">
-              <tr className="border-b border-border/40">
-                <td className="px-4 py-2.5 font-sans text-foreground">EfficientNetB0 + SLIC + SIFT</td>
-                <td className="px-4 py-2.5 text-good font-semibold">92.64%</td>
-                <td className="px-4 py-2.5 text-muted-foreground">Best · epoch 32</td>
+              <tr className="border-b border-border/40 bg-primary/[0.03]">
+                <td className="px-4 py-2.5 font-sans text-foreground">ForensicFusion-Net (Phase 3)</td>
+                <td className="px-4 py-2.5 text-primary font-semibold">Training…</td>
+                <td className="px-4 py-2.5 text-muted-foreground">Target: IoU&gt;87.17%</td>
               </tr>
               <tr className="border-b border-border/40">
-                <td className="px-4 py-2.5 font-sans text-foreground">AlexNet baseline (Li et al.)</td>
-                <td className="px-4 py-2.5 text-destructive">~78%</td>
-                <td className="px-4 py-2.5 text-muted-foreground">Baseline</td>
+                <td className="px-4 py-2.5 font-sans text-foreground">EfficientNetB0 + SLIC + SIFT (Phase 2)</td>
+                <td className="px-4 py-2.5 text-good font-semibold">96.41%</td>
+                <td className="px-4 py-2.5 text-muted-foreground">Live · current fallback</td>
+              </tr>
+              <tr className="border-b border-border/40">
+                <td className="px-4 py-2.5 font-sans text-foreground">HDBK ensemble (VGG16+MobileNet+EfficientNetB0)</td>
+                <td className="px-4 py-2.5 text-amber-500">97.34%</td>
+                <td className="px-4 py-2.5 text-muted-foreground">Reference · CoMoFoD only</td>
               </tr>
               <tr>
-                <td className="px-4 py-2.5 font-sans text-foreground">Single-modal CNN</td>
+                <td className="px-4 py-2.5 font-sans text-foreground">Single-modal CNN baseline</td>
                 <td className="px-4 py-2.5 text-destructive">~83%</td>
                 <td className="px-4 py-2.5 text-muted-foreground">No localization</td>
               </tr>
@@ -444,36 +462,24 @@ function SignalBar({ label, value, color }: { label: string; value: number; colo
         <span className="mono">{value.toFixed(0)}%</span>
       </div>
       <div className="h-1.5 rounded-full bg-border/50 overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${value}%`, backgroundColor: color }}
-        />
+        <div className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${value}%`, backgroundColor: color }} />
       </div>
     </div>
   );
 }
 
-function AiDetectionCard({ ai, elaUniformity }: { ai: import("@/lib/types").AiDetection | undefined; elaUniformity: number | undefined }) {
+function AiDetectionCard({ ai, elaUniformity }: {
+  ai: import("@/lib/types").AiDetection | undefined;
+  elaUniformity: number | undefined;
+}) {
   if (!ai) return null;
-  const isAi = ai.is_ai_generated;
+  const isAi     = ai.is_ai_generated;
   const uncertain = ai.label === "Uncertain";
 
-  const borderColor = uncertain
-    ? "border-yellow-500/40"
-    : isAi
-    ? "border-violet-500/40"
-    : "border-good/40";
-  const bgColor = uncertain
-    ? "bg-yellow-500/[0.05]"
-    : isAi
-    ? "bg-violet-500/[0.06]"
-    : "bg-good/[0.06]";
-  const textColor = uncertain
-    ? "text-yellow-500"
-    : isAi
-    ? "text-violet-400"
-    : "text-good";
-
+  const borderColor = uncertain ? "border-yellow-500/40" : isAi ? "border-violet-500/40" : "border-good/40";
+  const bgColor     = uncertain ? "bg-yellow-500/[0.05]" : isAi ? "bg-violet-500/[0.06]" : "bg-good/[0.06]";
+  const textColor   = uncertain ? "text-yellow-500" : isAi ? "text-violet-400" : "text-good";
   const Icon = uncertain ? ShieldCheck : isAi ? Bot : Camera;
 
   return (
@@ -485,9 +491,7 @@ function AiDetectionCard({ ai, elaUniformity }: { ai: import("@/lib/types").AiDe
           </div>
           <div>
             <div className="text-[12.5px] font-semibold text-foreground">AI Generation Analysis</div>
-            <div className={cn("text-[10.5px] mono uppercase tracking-widest mt-0.5", textColor)}>
-              {ai.label}
-            </div>
+            <div className={cn("text-[10.5px] mono uppercase tracking-widest mt-0.5", textColor)}>{ai.label}</div>
           </div>
         </div>
         <div className="text-right">
@@ -495,16 +499,13 @@ function AiDetectionCard({ ai, elaUniformity }: { ai: import("@/lib/types").AiDe
           <div className="text-[9px] uppercase tracking-widest text-muted-foreground">AI likelihood</div>
         </div>
       </div>
-
       <Separator className="my-3 bg-border/60" />
-
       <div className="space-y-2">
-        <SignalBar label="EXIF Metadata" value={ai.signals.exif} color={isAi ? "#a855f7" : "#10b981"} />
-        <SignalBar label="Frequency Domain" value={ai.signals.frequency} color={isAi ? "#a855f7" : "#10b981"} />
-        <SignalBar label="Noise Pattern (PRNU)" value={ai.signals.noise} color={isAi ? "#a855f7" : "#10b981"} />
-        <SignalBar label="ELA Uniformity" value={ai.signals.ela} color={isAi ? "#a855f7" : "#10b981"} />
+        <SignalBar label="EXIF Metadata"     value={ai.signals.exif}      color={isAi ? "#a855f7" : "#10b981"} />
+        <SignalBar label="Frequency Domain"  value={ai.signals.frequency}  color={isAi ? "#a855f7" : "#10b981"} />
+        <SignalBar label="Noise Pattern (PRNU)" value={ai.signals.noise}  color={isAi ? "#a855f7" : "#10b981"} />
+        <SignalBar label="ELA Uniformity"    value={ai.signals.ela}       color={isAi ? "#a855f7" : "#10b981"} />
       </div>
-
       <p className="mt-3 text-[10.5px] text-muted-foreground leading-snug">
         {isAi
           ? "Multi-signal analysis indicates this image was likely generated by an AI model (Stable Diffusion, DALL·E, Midjourney, or similar). Authentic camera photos exhibit distinct EXIF metadata, natural 1/f² frequency spectrum, and non-Gaussian sensor noise."
@@ -516,21 +517,28 @@ function AiDetectionCard({ ai, elaUniformity }: { ai: import("@/lib/types").AiDe
   );
 }
 
-function ConclusionRow({ forged, type }: { forged: boolean; type: "copy-move" | "splicing" | "unknown" | "none" }) {
+function ConclusionRow({ forged, type }: { forged: boolean; type: string }) {
   if (!forged) {
     return (
       <div className="rounded-xl border border-good/40 bg-good/10 px-4 py-3 text-[12px] text-good/90 flex items-start gap-2.5">
         <CheckCircle2 className="size-4 mt-0.5 shrink-0 text-good" />
-        <span>No signs of manipulation. Neither SLIC illumination outliers nor SIFT duplication clusters exceeded detection thresholds.</span>
+        <span>No signs of manipulation detected. All four domain streams (RGB, SRM, FFT/DCT, ELA) returned authentic signatures within normal thresholds.</span>
       </div>
     );
   }
-  const msg =
-    type === "copy-move"
-      ? "SIFT identified geometrically duplicated keypoint clusters — a region was copied and pasted within the image."
-      : type === "splicing"
-        ? "SLIC superpixels revealed inconsistent illumination and colour statistics — content was spliced from a different source image."
-        : "Deep classifier detected manipulation. SLIC/SIFT signals were below threshold — use Grad-CAM view for neural network localization.";
+  const msgs: Record<string, string> = {
+    "copy-move":
+      "SRM noise analysis and SIFT keypoints identified geometrically duplicated regions — a region was copied and pasted within the image.",
+    "splicing":
+      "Frequency domain inconsistency and ELA artifacts indicate content was spliced from a different source image.",
+    "object-removal":
+      "ELA compression artifacts and SRM residual patterns suggest regions were removed and inpainted.",
+    "ai-generated":
+      "Multi-signal analysis detected characteristic AI generation patterns: uniform ELA, absent PRNU sensor noise, and unnatural FFT spectrum deviating from a natural 1/f² distribution.",
+    "unknown":
+      "Deep classifier detected manipulation. Use Grad-CAM and U-Net mask views for neural network localization of affected regions.",
+  };
+  const msg = msgs[type] ?? msgs["unknown"];
   return (
     <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-[12px] text-destructive/90 flex items-start gap-2.5">
       <AlertTriangle className="size-4 mt-0.5 shrink-0 text-destructive" />

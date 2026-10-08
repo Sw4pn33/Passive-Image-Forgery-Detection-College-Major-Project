@@ -9,21 +9,21 @@ const STATS = [
   {
     label: "Best Val Accuracy",
     value: "96.41%",
-    sub: "Epoch 38 best · 40 epochs trained",
+    sub: "Phase 2 · EfficientNetB0 baseline",
     valueClass: "text-teal",
     bar: "bg-teal",
   },
   {
     label: "Backbone",
-    value: "EfficientNetB0",
-    sub: "ImageNet pretrained",
+    value: "EfficientNetV2-S",
+    sub: "Phase 3 · 4-stream fusion",
     valueClass: "text-foreground",
     bar: "bg-foreground/30",
   },
   {
     label: "Localisation",
-    value: "SLIC + SIFT",
-    sub: "Hybrid ML approach",
+    value: "U-Net + SIFT",
+    sub: "Pixel mask + keypoint matching",
     valueClass: "text-good",
     bar: "bg-good",
   },
@@ -50,7 +50,7 @@ export function HeroStats() {
         ))}
       </div>
       <p className="mt-3.5 text-[11.5px] text-muted-foreground/70 leading-relaxed">
-        Improvement over single-modal CNN baselines · Localisation via SLIC colour-inconsistency + SIFT keypoint matching · Detects: copy-move, splicing
+        ForensicFusion-Net Phase 3 · 4-stream multi-domain analysis (RGB · SRM · FFT/DCT · ELA) · ECA attention + Lightweight Transformer · 5-class forgery detection · U-Net pixel segmentation · Targets IoU &gt; 87.17% / F1 &gt; 91.85% / FPR &lt; 2.71%
       </p>
     </section>
   );
