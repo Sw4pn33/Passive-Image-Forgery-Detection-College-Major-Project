@@ -519,12 +519,22 @@ function ResultView({ item }: { item: StoredResult }) {
           <div className={cn("text-2xl font-bold tracking-tight", forged ? "text-destructive" : "text-good")}>
             {r.verdict}
           </div>
-          <div className="mt-1">
+          <div className="mt-1 flex items-center gap-2 flex-wrap">
             <ForgeryTypeBadge type={displayType} />
+            {r.confidence < 70 && (
+              <span className="inline-flex items-center rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[9.5px] font-medium text-amber-400 mono uppercase tracking-widest">
+                Low Confidence
+              </span>
+            )}
           </div>
           {r.evidence_score != null && (
             <div className="mt-1.5 text-[10.5px] text-muted-foreground mono">
               evidence: <span className="text-foreground">{r.evidence_score.toFixed(1)}%</span>
+            </div>
+          )}
+          {r.confidence < 70 && (
+            <div className="mt-1.5 text-[10.5px] text-amber-400/80 max-w-[200px] leading-snug">
+              Model confidence &lt;70% — result may be unreliable. Phase 3 val_acc: 62.60%.
             </div>
           )}
         </div>
