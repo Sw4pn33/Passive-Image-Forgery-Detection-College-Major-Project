@@ -294,6 +294,54 @@ function ForgeryOverlayCanvas({ original, maskB64 }: { original: string; maskB64
   );
 }
 
+function BinaryMaskCanvas({ maskB64 }: { maskB64: string }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    setReady(false);
+    const canvas = ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    let alive = true;
+    const img = new Image();
+    img.onload = () => {
+      if (!alive) return;
+      const W = img.naturalWidth, H = img.naturalHeight;
+      canvas.width = W; canvas.height = H;
+      ctx.drawImage(img, 0, 0, W, H);
+      const id = ctx.getImageData(0, 0, W, H);
+      const d = id.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+        const bw = lum > 80 ? 255 : 0;
+        d[i] = d[i + 1] = d[i + 2] = bw;
+        d[i + 3] = 255;
+      }
+      ctx.putImageData(id, 0, 0);
+      setReady(true);
+    };
+    img.onerror = () => setReady(true);
+    img.src = `data:image/jpeg;base64,${maskB64}`;
+    return () => { alive = false; };
+  }, [maskB64]);
+  return (
+    <div className="relative rounded-xl overflow-hidden border border-border/70 bg-black" style={{ minHeight: 160 }}>
+      {!ready && <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>}
+      <canvas ref={ref} className="w-full h-auto block" />
+      <div className="absolute bottom-2 left-2 flex items-center gap-2">
+        <span className="text-[9px] text-white bg-black/60 px-1.5 py-0.5 rounded flex items-center gap-1">
+          <span className="inline-block size-1.5 rounded-full bg-white" />Forged
+        </span>
+        <span className="text-[9px] text-white bg-black/60 px-1.5 py-0.5 rounded flex items-center gap-1">
+          <span className="inline-block size-1.5 rounded-full bg-gray-700 border border-white/20" />Clean
+        </span>
+      </div>
+      <div className="absolute bottom-2 right-2 text-[9px] uppercase tracking-widest text-white bg-black/60 px-1.5 py-0.5 rounded">Predicted Mask</div>
+    </div>
+  );
+}
+
 function KeypointMatchCanvas({ original, maskB64, siftMatches }: {
   original: string; maskB64: string; siftMatches: number;
 }) {

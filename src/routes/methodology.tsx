@@ -7,9 +7,12 @@ import {
   EyeOff,
   Cpu,
   Fingerprint,
-  Map,
+  Network,
   UploadCloud,
   BarChart3,
+  Scan,
+  Bot,
+  GitMerge,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -20,12 +23,12 @@ export const Route = createFileRoute("/methodology")({
       {
         name: "description",
         content:
-          "Research gap, our hybrid DL + ML contribution, and performance results for passive image forgery detection.",
+          "ForensicFusion-Net Phase 3: 4-stream EfficientNetV2-S backbone with ECA attention, transformer fusion, and U-Net pixel segmentation for passive image forgery detection.",
       },
       { property: "og:title", content: "Methodology · ForensicVision" },
       {
         property: "og:description",
-        content: "Hybrid EfficientNetB0 + SLIC + SIFT pipeline explained.",
+        content: "ForensicFusion-Net Phase 3 — 4-stream fusion, ECA attention, U-Net mask, Grad-CAM.",
       },
     ],
   }),
@@ -36,74 +39,86 @@ const GAPS = [
   {
     icon: Ban,
     title: "Single-modality limitation",
-    body: "Prior work used either deep learning OR handcrafted features (SIFT/SURF). Deep networks lacked localization; traditional methods broke under JPEG compression.",
+    body: "Prior work processed only the RGB channel. Forgery traces in noise residuals (SRM), compression artifacts (ELA), and frequency anomalies (FFT/DCT) were completely ignored.",
   },
   {
     icon: Compass,
-    title: "No spatial localization",
-    body: "CNNs output binary labels without revealing which region was tampered. Investigators need pixel-level spatial evidence for legal reporting.",
+    title: "No pixel-level localization",
+    body: "CNNs output binary labels without a spatial mask. Investigators need exact pixel-level evidence for legal and forensic reporting — a bounding box is insufficient.",
   },
   {
     icon: Layers,
     title: "Single forgery type",
-    body: "Most methods addressed copy-move OR splicing independently. Real-world forgeries combine types. A unified pipeline is needed.",
+    body: "Most methods addressed copy-move OR splicing independently. Real-world forgeries combine manipulation types. A unified 5-class multi-task head is required.",
   },
   {
     icon: EyeOff,
     title: "Uninterpretable predictions",
-    body: "Black-box neural network decisions have no visual evidence usable in court or by non-expert examiners.",
+    body: "Black-box network decisions carry no visual justification. Grad-CAM explanation maps and SIFT keypoint overlays are needed for expert and non-expert examiners.",
   },
 ] satisfies Array<{ icon: LucideIcon; title: string; body: string }>;
 
 const STEPS = [
   {
     n: "01",
-    icon: Cpu,
-    title: "DCNN Classification",
-    body: "EfficientNetB0 backbone pretrained on ImageNet, fine-tuned on CASIA v1.0. Binary classification (authentic vs forged) with confidence score.",
+    icon: Layers,
+    title: "4-Stream Input Representation",
+    body: "Each image is pre-processed into four parallel streams: (1) RGB — original pixel data, (2) SRM — high-pass residual noise revealing retouching, (3) ELA — JPEG re-compression error map highlighting tampered blocks, (4) FFT/DCT — spectral domain exposing periodicity and quantization anomalies.",
   },
   {
     n: "02",
-    icon: Layers,
-    title: "SLIC Superpixel Segmentation",
-    body: "Simple Linear Iterative Clustering partitions image into ~100 perceptually uniform superpixels. Per-superpixel Lab* colour statistics computed.",
+    icon: Cpu,
+    title: "EfficientNetV2-S Feature Extraction",
+    body: "A shared EfficientNetV2-S backbone (pretrained on ImageNet) encodes each stream independently through 4 feature scales (64→128→256→512 channels). The same weights initialize all four encoders; stream-specific gradients diverge during fine-tuning on CASIA 2.0.",
   },
   {
     n: "03",
-    icon: Fingerprint,
-    title: "SIFT Keypoint Matching",
-    body: "Scale-Invariant Feature Transform extracts 500 keypoints. Brute-force L2 nearest-neighbour matching identifies geometrically duplicated regions.",
+    icon: Network,
+    title: "ECA Attention + Lightweight Transformer",
+    body: "Efficient Channel Attention (ECA) re-weights each stream's feature maps channel-wise with no dimensionality reduction. A shallow 2-layer transformer cross-attends between all 4 streams, building a global context representation that is stream-agnostic.",
   },
   {
     n: "04",
-    icon: Map,
-    title: "Forgery Localization + Heatmap",
-    body: "SLIC outlier superpixels (z-score > 2.5) flag illumination inconsistency (splicing). SIFT match clusters mark copy-move regions. JET-coloured heatmap output.",
+    icon: Scan,
+    title: "Multi-Task Heads",
+    body: "Three simultaneous prediction heads: (a) binary classification head — authentic / forged with sigmoid confidence, (b) 5-class forgery-type head — copy-move, splicing, object-removal, AI-generated, unknown via softmax, (c) U-Net decoder — 256×256 pixel segmentation mask with white = forged, black = clean.",
+  },
+  {
+    n: "05",
+    icon: Fingerprint,
+    title: "Grad-CAM + SIFT/RANSAC Verification",
+    body: "Gradient-weighted Class Activation Mapping (Grad-CAM) backpropagates classification gradients through the final conv layer, producing a spatial attention heatmap. SIFT extracts 500 keypoints; RANSAC-filtered matches between duplicate regions confirm copy-move forgery with geometric consistency.",
+  },
+  {
+    n: "06",
+    icon: Bot,
+    title: "AI-Generation Detection",
+    body: "A parallel ViT-based classifier analyses frequency-domain signals (FFT/DCT spectral uniformity), PRNU sensor noise absence, EXIF metadata inconsistencies, and ELA uniformity patterns — features absent in camera-captured images — fused by an MLP/XGBoost ensemble.",
   },
 ] satisfies Array<{ n: string; icon: LucideIcon; title: string; body: string }>;
 
 const PERF = [
-  { value: "92.64%", label: "Best Val Accuracy", sub: "Epoch 32 of 40", accent: "text-teal" },
-  { value: "0.2055", label: "Best Val Loss", sub: "Epoch 36", accent: "text-foreground" },
-  { value: "EfficientNetB0", label: "Backbone", sub: "ImageNet pretrained", accent: "text-foreground" },
-  { value: "CASIA v1.0", label: "Training Dataset", sub: "~1,700 images", accent: "text-primary" },
+  { value: "62.60%", label: "Best Score", sub: "F1×0.6 + val_acc×0.4 · Epoch 5", accent: "text-teal" },
+  { value: "0.55", label: "Best Val Loss", sub: "Epoch 5 of 13", accent: "text-foreground" },
+  { value: "EfficientNetV2-S", label: "Backbone", sub: "ImageNet pretrained · 4-stream", accent: "text-foreground" },
+  { value: "CASIA 2.0", label: "Training Dataset", sub: "~12,600 images · epoch 5 best", accent: "text-primary" },
 ];
 
 const HOW = [
   {
     icon: UploadCloud,
     title: "Upload Image",
-    body: "Drag a suspected forgery image. JPG, PNG, TIFF, BMP, WebP supported.",
+    body: "Drag a suspected forgery image. JPG, PNG, TIFF, BMP, WebP supported up to 15 MB.",
   },
   {
-    icon: Cpu,
-    title: "AI Analysis",
-    body: "EfficientNetB0 classifies globally. SLIC segments into superpixels. SIFT finds duplicated keypoints.",
+    icon: GitMerge,
+    title: "4-Stream Fusion",
+    body: "ForensicFusion-Net simultaneously analyzes RGB, SRM residual noise, ELA compression artifacts, and FFT/DCT frequency domain. ECA attention and a transformer fuse all streams.",
   },
   {
     icon: BarChart3,
-    title: "Results + Heatmap",
-    body: "Verdict with confidence score, forgery type, and JET heatmap overlay highlighting manipulated regions.",
+    title: "Multi-output Results",
+    body: "Verdict + confidence, 5-class forgery type, Grad-CAM heatmap, U-Net pixel mask (Mask tab), red overlay (Overlay tab), SIFT keypoint matches, and AI-generation signal breakdown.",
   },
 ] satisfies Array<{ icon: LucideIcon; title: string; body: string }>;
 
@@ -143,9 +158,9 @@ function MethodologyPage() {
 
       <section className="glass-card p-6 lg:p-8">
         <SectionEyebrow
-          eyebrow="Contribution"
-          title="Hybrid DL + ML pipeline"
-          description="A four-stage pipeline that combines a modern CNN classifier with two classical computer-vision techniques to reveal, not just detect, forgery."
+          eyebrow="Contribution — Phase 3"
+          title="ForensicFusion-Net architecture"
+          description="A six-stage multi-task pipeline: 4-stream EfficientNetV2-S encoders fused by ECA attention and a lightweight transformer, producing classification, forgery-type, and a U-Net pixel mask simultaneously."
         />
         <ol className="mt-6 space-y-4">
           {STEPS.map((s) => {

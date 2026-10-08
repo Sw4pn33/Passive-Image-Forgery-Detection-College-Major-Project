@@ -12,12 +12,12 @@ export const Route = createFileRoute("/training")({
       {
         name: "description",
         content:
-          "Accuracy and loss curves across 40 training epochs on CASIA v1.0. Best val_acc 92.64% at epoch 32.",
+          "ForensicFusion-Net Phase 3 training — 13 epochs on CASIA 2.0, early stopping at epoch 13, best score 62.60% at epoch 5.",
       },
       { property: "og:title", content: "Training Metrics · ForensicVision" },
       {
         property: "og:description",
-        content: "40-epoch training curves and per-epoch log for the ForensicVision model.",
+        content: "Phase 3 training curves — 13-epoch run on CASIA 2.0 with EfficientNetV2-S 4-stream backbone.",
       },
     ],
   }),
