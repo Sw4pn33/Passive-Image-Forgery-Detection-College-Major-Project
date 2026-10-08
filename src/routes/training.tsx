@@ -58,10 +58,20 @@ function TrainingPage() {
     );
   }
 
-  const epochs = data.epochs;
+  const epochs = data.epochs ?? [];
+
+  if (epochs.length === 0) {
+    return (
+      <div className="glass-card p-10 flex flex-col items-center gap-3 text-center">
+        <AlertTriangle className="size-8 text-amber-500" />
+        <div className="text-sm text-foreground">No training data available</div>
+        <div className="text-xs text-muted-foreground">Backend returned an empty epoch log.</div>
+      </div>
+    );
+  }
   const totalEpochs = epochs.length;
-  const bestValAcc = epochs.reduce((a, b) => (b.val_acc > a.val_acc ? b : a));
-  const bestValLoss = epochs.reduce((a, b) => (b.val_loss < a.val_loss ? b : a));
+  const bestValAcc = epochs.reduce((a, b) => (b.val_acc > a.val_acc ? b : a), epochs[0]);
+  const bestValLoss = epochs.reduce((a, b) => (b.val_loss < a.val_loss ? b : a), epochs[0]);
   const finalTrainAcc = epochs[epochs.length - 1]?.train_acc ?? 0;
 
   return (
