@@ -294,7 +294,7 @@ function ForgeryOverlayCanvas({ original, maskB64 }: { original: string; maskB64
   );
 }
 
-function BinaryMaskCanvas({ maskB64 }: { maskB64: string }) {
+function BinaryMaskCanvas({ maskB64, hasPhase3 }: { maskB64: string; hasPhase3: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const [ready, setReady] = useState(false);
   useEffect(() => {
@@ -310,15 +310,22 @@ function BinaryMaskCanvas({ maskB64 }: { maskB64: string }) {
       const W = img.naturalWidth, H = img.naturalHeight;
       canvas.width = W; canvas.height = H;
       ctx.drawImage(img, 0, 0, W, H);
-      const id = ctx.getImageData(0, 0, W, H);
-      const d = id.data;
-      for (let i = 0; i < d.length; i += 4) {
-        const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-        const bw = lum > 80 ? 255 : 0;
-        d[i] = d[i + 1] = d[i + 2] = bw;
-        d[i + 3] = 255;
+      try {
+        const id = ctx.getImageData(0, 0, W, H);
+        const d = id.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const R = d[i], G = d[i + 1], B = d[i + 2];
+          // JET colormap: red/yellow = hot (forged), blue/cyan = cold (clean)
+          // R-B gives +255 for red/yellow, -255 for blue, use 50 as threshold
+          const heat = R - B + (R > 200 && G < 150 ? 80 : 0);
+          const bw = heat > 50 ? 255 : 0;
+          d[i] = d[i + 1] = d[i + 2] = bw;
+          d[i + 3] = 255;
+        }
+        ctx.putImageData(id, 0, 0);
+      } catch {
+        // getImageData blocked (e.g. canvas tainted) — show colored heatmap as-is
       }
-      ctx.putImageData(id, 0, 0);
       setReady(true);
     };
     img.onerror = () => setReady(true);
@@ -337,7 +344,9 @@ function BinaryMaskCanvas({ maskB64 }: { maskB64: string }) {
           <span className="inline-block size-1.5 rounded-full bg-gray-700 border border-white/20" />Clean
         </span>
       </div>
-      <div className="absolute bottom-2 right-2 text-[9px] uppercase tracking-widest text-white bg-black/60 px-1.5 py-0.5 rounded">Predicted Mask</div>
+      <div className="absolute bottom-2 right-2 text-[9px] uppercase tracking-widest text-white bg-black/60 px-1.5 py-0.5 rounded">
+        {hasPhase3 ? "U-Net Predicted Mask" : "SLIC+SIFT Heatmap"}
+      </div>
     </div>
   );
 }
@@ -543,21 +552,10 @@ function ResultView({ item }: { item: StoredResult }) {
         </p>
 
         {heatmapMode === "gradcam" && (
-          <CompareSlider original={item.originalDataUrl} heatmap={r.gradcam_jpeg} label="Grad-CAM" />
+          <CompareSlider original={item.originalDataUrl} heatmap={r.gradcam_jpeg ?? r.heatmap} label="Grad-CAM" />
         )}
         {heatmapMode === "mask" && maskSrc && (
-          <div className="relative rounded-xl overflow-hidden border border-border/70">
-            <img src={`data:image/jpeg;base64,${maskSrc}`} alt="forgery mask" className="w-full h-auto block" />
-            <div className="absolute bottom-2 left-2 text-[9px] uppercase tracking-widest text-white bg-black/60 px-1.5 py-0.5 rounded">
-              {hasPhase3 ? "U-Net Predicted Mask" : "SLIC+SIFT Heatmap"}
-            </div>
-            <div className="absolute bottom-2 right-2 text-[9px] text-white bg-black/60 px-1.5 py-0.5 rounded flex items-center gap-1">
-              <span className="inline-block size-1.5 rounded-sm bg-white" />
-              <span>Forged</span>
-              <span className="inline-block size-1.5 rounded-sm bg-black border border-white/30 ml-1" />
-              <span>Clean</span>
-            </div>
-          </div>
+          <BinaryMaskCanvas maskB64={maskSrc} hasPhase3={hasPhase3} />
         )}
         {heatmapMode === "overlay" && maskSrc && (
           <ForgeryOverlayCanvas original={item.originalDataUrl} maskB64={maskSrc} />
