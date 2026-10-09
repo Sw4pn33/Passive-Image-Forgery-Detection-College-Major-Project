@@ -76,7 +76,7 @@ export function AccuracyChart({ data, bestEpoch }: Props) {
             <YAxis
               stroke={axis}
               fontSize={11}
-              domain={[50, 100]}
+              domain={[60, 100]}
               tickLine={false}
               axisLine={{ stroke: grid }}
               tickFormatter={(v) => `${v}%`}

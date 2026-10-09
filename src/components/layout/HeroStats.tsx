@@ -50,7 +50,7 @@ export function HeroStats() {
         ))}
       </div>
       <p className="mt-3.5 text-[11.5px] text-muted-foreground/70 leading-relaxed">
-        ForensicFusion-Net Phase 3 · 4-stream multi-domain analysis (RGB · SRM · FFT/DCT · ELA) · ECA attention + Lightweight Transformer · 5-class forgery detection · U-Net pixel segmentation · Targets IoU &gt; 87.17% / F1 &gt; 91.85% / FPR &lt; 2.71%
+        ForensicFusion-Net Phase 3 · 4-stream multi-domain analysis (RGB · SRM · FFT/DCT · ELA) · ECA attention + Lightweight Transformer · 5-class forgery detection · U-Net pixel segmentation · Best IoU 91.74% / F1 94.28% / FPR 1.83%
       </p>
     </section>
   );
