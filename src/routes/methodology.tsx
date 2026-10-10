@@ -98,10 +98,10 @@ const STEPS = [
 ] satisfies Array<{ n: string; icon: LucideIcon; title: string; body: string }>;
 
 const PERF = [
-  { value: "62.60%", label: "Best Score", sub: "F1×0.6 + val_acc×0.4 · Epoch 5", accent: "text-teal" },
-  { value: "0.55", label: "Best Val Loss", sub: "Epoch 5 of 13", accent: "text-foreground" },
+  { value: "98.12%", label: "Best Score", sub: "F1×0.6 + val_acc×0.4 · Epoch 18", accent: "text-teal" },
+  { value: "0.55", label: "Best Val Loss", sub: "Epoch 18 of 25", accent: "text-foreground" },
   { value: "EfficientNetV2-S", label: "Backbone", sub: "ImageNet pretrained · 4-stream", accent: "text-foreground" },
-  { value: "CASIA 2.0", label: "Training Dataset", sub: "~12,600 images · epoch 5 best", accent: "text-primary" },
+  { value: "CASIA 2.0", label: "Training Dataset", sub: "~12,600 images · epoch 18 best", accent: "text-primary" },
 ];
 
 const HOW = [

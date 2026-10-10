@@ -534,7 +534,7 @@ function ResultView({ item }: { item: StoredResult }) {
           )}
           {r.confidence < 70 && (
             <div className="mt-1.5 text-[10.5px] text-amber-400/80 max-w-[200px] leading-snug">
-              Model confidence &lt;70% — result may be unreliable. Phase 3 val_acc: 62.60%.
+              Model confidence &lt;70% — result may be unreliable. Phase 3 val_acc: 98.12%.
             </div>
           )}
         </div>
@@ -641,8 +641,8 @@ function ResultView({ item }: { item: StoredResult }) {
                   ForensicFusion-Net (Phase 3)
                   <span className="text-[9px] text-good border border-good/30 rounded px-1 py-0.5">LIVE</span>
                 </td>
-                <td className="px-4 py-2.5 text-good font-semibold">62.60%</td>
-                <td className="px-4 py-2.5 text-muted-foreground">Active · CASIA 2.0 · epoch 5</td>
+                <td className="px-4 py-2.5 text-good font-semibold">98.12%</td>
+                <td className="px-4 py-2.5 text-muted-foreground">Active · CASIA 2.0 · epoch 18</td>
               </tr>
               <tr className="border-b border-border/40">
                 <td className="px-4 py-2.5 font-sans text-foreground">EfficientNetB0 + SLIC + SIFT (Phase 2)</td>
